@@ -9,17 +9,20 @@ class client_window(QtWidgets.QMainWindow):
 
         # create windows title and its size
         self.setWindowTitle("Client")      
-        self.setFixedSize(500, 400)
+        self.setFixedSize(500, 500)
 
         # IP box
-        self.IPTextBox = QtWidgets.QLineEdit("Server IP", self)
+        self.IPTextBox = QtWidgets.QLineEdit("127.0.0.1", self)
+        self.IPTextBox.setInputMask('000.000.000.000;_')
         self.IPTextBox.move(10,50)
         self.IPTextBox.setFixedWidth(200)
 
         # Port box
-        self.PortTextBox =  QtWidgets.QLineEdit("Port", self)
+        self.PortTextBox =  QtWidgets.QLineEdit("65432", self)
+        self.PortTextBox.setInputMask('00000;_')
         self.PortTextBox.move(self.IPTextBox.geometry().x() + self.IPTextBox.width(),50)
         self.PortTextBox.setFixedWidth(50)
+    
 
         # Connect Button
         self.ConnectButton = QtWidgets.QPushButton("Connect!", self)
@@ -68,12 +71,26 @@ class client_window(QtWidgets.QMainWindow):
         self.QuitButton.setFixedHeight(self.RegistryEdit.geometry().y() + self.RegistryEdit.height() - 100)
 
 
-        #self.button.clicked.connect(self.magic)
-    '''
+        #inputdebugger:
+        self.Input = QtWidgets.QLineEdit(self)
+        self.Input.move(10, 350)
+        self.Input.setFixedWidth(buttonwidth)
+
+        #outputdebugger
+        self.OutputPanel = QtWidgets.QLabel('', self)
+        self.OutputPanel.move(10, 380)
+        self.OutputPanel.setFixedWidth(buttonwidth)
+        self.OutputPanel.setFixedHeight(100)
+        self.OutputPanel.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
+
+        #SentButton
+        self.SentButton = QtWidgets.QPushButton('SEND', self)
+        self.SentButton.move(buttonwidth + 20, 380)
+        self.SentButton.setFixedHeight(100)
+
     @QtCore.Slot()
-    def magic(self):
-        self.text.setText(random.choice(self.hello))
-        '''
+    def add_Click_Behavior(self, obj, func):
+        obj.clicked.connect(func)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])

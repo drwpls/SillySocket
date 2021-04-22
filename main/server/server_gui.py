@@ -8,12 +8,16 @@ class server_window(QtWidgets.QMainWindow):
 
         # create windows title and its size
         self.setWindowTitle("Server")      
-        self.setFixedSize(100, 100)
+        self.setFixedSize(260, 170)
 
         # ListenBox
         self.ListenBox = QtWidgets.QPushButton("Start Listen", self)
         self.ListenBox.move(10,10)
-        self.ListenBox.setFixedSize(80, 80)
+        self.ListenBox.setFixedSize(240, 150)
+    
+    @QtCore.Slot()
+    def add_Click_Behavior(self, obj, func):
+        obj.clicked.connect(func)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])

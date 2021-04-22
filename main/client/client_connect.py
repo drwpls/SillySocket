@@ -46,15 +46,15 @@ class Client_Connection:
         try:
             self.mainsock.sendall(message)
         except ConnectionAbortedError:
-            print('Connection aborted by the server')
+            print('Lost connection from ', self.mainsock.getpeername())
             self.connect_status = 0
         except ConnectionResetError:
-            print('Connection aborted by the server')
+            print('Lost connection from ', self.mainsock.getpeername())
             self.connect_status = 0
     def stop_connect(self):
         print('Closed connection to ', self.mainsock.getpeername())
         endmessage = 'Close'
-        self.mainsock.sendall(endmessage.encode('utf-8'))
+        self.send_message(endmessage)
         self.connect_status = 0
 
 if __name__ == '__main__':

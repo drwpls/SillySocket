@@ -7,6 +7,7 @@ class Server_Connection:
         self.sel = selectors.DefaultSelector()           # Monitor will hand all of connections    
         self.host = host
         self.port = port
+        
 
     def start_listen(self):
         self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # USE TCP/IP Connection
@@ -24,6 +25,8 @@ class Server_Connection:
                     self.start_connect(key.fileobj)
                 else:                   # service connects
                     self.service_connect(key, mask)
+        if (not self.connect_status):
+            print('thread ends')
     def stop_listen(self):
         s = self.sel.get_map()
         keys = [i for i in s]
@@ -35,16 +38,23 @@ class Server_Connection:
         # for short, but not use because of readability
         #_socks = [s[i][0] for i in s if s[i][3] != None]
         
+        print(socks)
         for sock in socks:
             print('Stop connection with ', sock.getpeername())
             sock.close()
             self.sel.unregister(sock)
 
         #self.server_sock.shutdown(socket.SHUT_RDWR)
-        print ('1')
-        self.connect_status = 0 # set to disconnected flag
+        print ('0')
+        print ('2')
+        self.connect_status = 0
+        print ('3')
         self.server_sock.close()
         self.sel.unregister(self.server_sock)
+        print ('4')
+        
+        print ('5')
+        
         
         print('stop_listen')
 
@@ -71,7 +81,7 @@ class Server_Connection:
             try:
                 recv_data = _sock.recv(1024)  # read data
             except ConnectionResetError:
-                print('Forcibly closed by ', _address)
+                print('Lost connection from ', _address)
                 self.stop_connect(_sock)
             else:
                 if recv_data and recv_data != b'Close':
@@ -84,6 +94,7 @@ class Server_Connection:
             pass
 
 if __name__ == '__main__':
-    host = '127.0.0.1'
+    host = '0.0.0.0'    # all network interface
     port = 65432
-    start_listen(host, port)
+    server_connection = Server_Connection(host, port)
+    server_connection.start_listen()

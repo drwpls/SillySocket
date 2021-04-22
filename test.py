@@ -4,12 +4,18 @@ import random
 from PySide6 import QtCore, QtWidgets, QtGui
 
 class client_window(QtWidgets.QMainWindow):
+    def showTime(self):
+        text = QtCore.QDateTime.currentDateTime().toString('yyyy-MM-dd hh:mm:ss')
+        self.ConnectStatus.setText(text)
     def __init__(self):
         super().__init__()
 
-        self.timer_update_GUI = QtCore.QTimer()
-        #self.timer_update_GUI.start(500) # Update every 500ms
+        #help(QTimer)
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.showTime)
+        self.timer.start(1000)
 
+        #self.timer_update_GUI = 
         # create windows title and its size
         self.setWindowTitle("Client")      
         self.setFixedSize(500, 500)
@@ -32,7 +38,7 @@ class client_window(QtWidgets.QMainWindow):
         self.ConnectButton.move(self.PortTextBox.geometry().x() + self.PortTextBox.width(), 50)
         
         # Connect status
-        self.ConnectStatus = QtWidgets.QLabel("DISCONNECT!", self, alignment=QtCore.Qt.AlignCenter)
+        self.ConnectStatus = QtWidgets.QLabel("DISCONNECT", self, alignment=QtCore.Qt.AlignCenter)
         self.ConnectStatus.move(10 + self.ConnectButton.geometry().x() + self.ConnectButton.width(), 50)
         self.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
 

@@ -8,18 +8,22 @@ class Client_Connection:
         self.host = '0.0.0.0'
         self.port = 0 
         self.mainsock = 0
+        self.err = None
 
     def start_connect(self, host, port):
+        
         self.host = host
         self.port = port
         self.mainsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.mainsock.settimeout(5) 
         try:
             self.mainsock.connect((self.host, self.port))
+
         except ConnectionRefusedError as e: # this is exception socket.error:
-            print('Cant connect to host')
-            sys.exit()
+            print('Cant connect to host', e)
+            self.connect_status = 0
+            return
         else:
+            self.connect_status = 1
             print('Connected to server ', self.mainsock.getpeername())
         
         # begin transfer data: (for commandline debugger)

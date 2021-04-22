@@ -11,7 +11,7 @@ def click_connectbutton(window):
         client_connection.connect_status = -1  # Connecting status
         host_str = str(window.IPTextBox.text())
         port_str = int(window.PortTextBox.text())   
-        connection_thread = threading.Thread(target = client_connection.start_connect, args = (host_str, port_str), )
+        connection_thread = threading.Thread(target = client_connection.start_connect, args = (host_str, port_str), daemon= True )
         connection_thread.start()
         window.timer_update_GUI.start(500)
     elif (client_connection.connect_status == 1):
@@ -24,8 +24,8 @@ def click_connectbutton(window):
 def click_sentbutton(window):
     if not client_connection.connect_status:
         return -1
-    message = str(window.Input.text()).encode('utf-8')
-    client_connection.mainsock.sendall(message)
+    message = str(window.Input.text())
+    client_connection.send_message(message)
 
 def UPDATE_GUI(window):
     ConnectingString = ['Connecting', 'Connecting.', 'Connecting..', 'Connecting...']

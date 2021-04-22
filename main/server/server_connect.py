@@ -15,6 +15,7 @@ class Server_Connection:
         self.server_sock.bind((self.host, self.port))  
         # accept 10 connections
         self.server_sock.listen(10) 
+        self.connect_status = 1 # set to start listening flag, 1 is one socket (server_sock)
         print('listening on', (self.host, self.port))
         while self.connect_status:
             event = self.sel.select(timeout = 0) # timeout = 0: wait until event appear
@@ -33,14 +34,18 @@ class Server_Connection:
 
         # for short, but not use because of readability
         #_socks = [s[i][0] for i in s if s[i][3] != None]
+        
         for sock in socks:
             print('Stop connection with ', sock.getpeername())
             sock.close()
             self.sel.unregister(sock)
 
         #self.server_sock.shutdown(socket.SHUT_RDWR)
+        print ('1')
+        self.connect_status = 0 # set to disconnected flag
         self.server_sock.close()
         self.sel.unregister(self.server_sock)
+        
         print('stop_listen')
 
 
@@ -50,10 +55,12 @@ class Server_Connection:
         _data = _address    
         _event = selectors.EVENT_READ | selectors.EVENT_WRITE
         self.sel.register(_connect, events = _event, data = _data)        # register this connect to sel, with wait-event are both read & write
+        self.connect_status += 1
         print('Start connection with ', _address)
 
     def stop_connect(self, _sock):
         self.sel.unregister(_sock)
+        self.connect_status -= 1
         _sock.close()
 
     def service_connect(self, _key, _mask):
@@ -61,14 +68,17 @@ class Server_Connection:
         _address = _key.data
         
         if _mask & selectors.EVENT_READ:
-
-            recv_data = _sock.recv(1024)  # read data
-
-            if recv_data and recv_data != b'Close':
-                print('Message from ', _address, recv_data)
+            try:
+                recv_data = _sock.recv(1024)  # read data
+            except ConnectionResetError:
+                print('Forcibly closed by ', _address)
+                self.stop_connect(_sock)
             else:
-                print('Closing connection to', _address)
-                self.stop_connect(_sock)  
+                if recv_data and recv_data != b'Close':
+                    print('Message from ', _address, recv_data)
+                else:
+                    print('Closing connection to', _address)
+                    self.stop_connect(_sock)  
             
         if _mask & selectors.EVENT_WRITE:
             pass

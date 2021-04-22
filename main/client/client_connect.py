@@ -40,7 +40,17 @@ class Client_Connection:
         data = '1'
         while not (data == 'Close' or not data) and self.connect_status:
             pass
-
+    
+    def send_message(self, message):
+        message = message.encode('utf-8')
+        try:
+            self.mainsock.sendall(message)
+        except ConnectionAbortedError:
+            print('Connection aborted by the server')
+            self.connect_status = 0
+        except ConnectionResetError:
+            print('Connection aborted by the server')
+            self.connect_status = 0
     def stop_connect(self):
         print('Closed connection to ', self.mainsock.getpeername())
         endmessage = 'Close'

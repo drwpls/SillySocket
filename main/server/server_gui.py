@@ -6,6 +6,8 @@ class server_window(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.timer_update_GUI = QtCore.QTimer()
+        
         # create windows title and its size
         self.setWindowTitle("Server")      
         self.setFixedSize(260, 170)

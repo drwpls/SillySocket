@@ -10,19 +10,27 @@ server_connection = server_connect.Server_Connection(host, port)
 def click_listenbox(window):
    # global window
     if (server_connection.connect_status == 0):
-        server_connection.connect_status = 1 # set to connected flag
-        window.ListenBox.setText('Wait for Client\nClick to stop accept connect request.')
         
-        threading._start_new_thread(server_connection.start_listen, ())
+        window.ListenBox.setText('Wait for clients.\nClick to Stop Listening')
+        connection_thread = threading.Thread(target = server_connection.start_listen, daemon= True )
+        connection_thread.start()
+        window.timer_update_GUI.start(500)
     else:
-        server_connection.connect_status = 0 # set to disconnected flag
         server_connection.stop_listen()
-        window.ListenBox.setText('Start accept connection.')
+        window.ListenBox.setText('Start Listening.')
+        window.timer_update_GUI.stop()
        
-        
+def UPDATE_GUI(window):
+    if server_connection.connect_status > 1:
+        window.ListenBox.setText('Connected to ' + \
+            str(server_connection.connect_status - 1)+  ' client(s)\n'+ 
+            'Click to Stop Listening')
+    elif server_connection.connect_status == 1:
+        window.ListenBox.setText('Wait for clients.\nClick to Stop Listening')
 
 def connect_GUI_Feature(window):
     window.add_Click_Behavior(window.ListenBox,lambda: click_listenbox(window))
+    window.timer_update_GUI.timeout.connect(lambda: UPDATE_GUI(window))
 
 if __name__ == '__main__':
     # create application window

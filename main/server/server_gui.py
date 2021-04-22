@@ -23,8 +23,6 @@ class server_window(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
-
     window = server_window()
     window.show()
-
     sys.exit(app.exec_())

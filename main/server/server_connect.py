@@ -8,7 +8,6 @@ class Server_Connection:
         self.host = host
         self.port = port
         
-
     def start_listen(self):
         self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # USE TCP/IP Connection
         self.server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -19,45 +18,36 @@ class Server_Connection:
         self.connect_status = 1 # set to start listening flag, 1 is one socket (server_sock)
         print('listening on', (self.host, self.port))
         while self.connect_status:
-            event = self.sel.select(timeout = 0) # timeout = 0: wait until event appear
-            for key, mask in event:
-                if key.data == None:     # client start connects to server (key.data is None = not registered)
-                    self.start_connect(key.fileobj)
-                else:                   # service connects
-                    self.service_connect(key, mask)
+            try:
+                event = self.sel.select(timeout = 0) # timeout = 0: wait until event appear
+            except:
+                pass
+            else:
+                for key, mask in event:
+                    if key.data == None:     # client start connects to server (key.data is None = not registered)
+                        self.start_connect(key.fileobj)
+                    else:                   # service connects
+                        self.service_connect(key, mask)
         if (not self.connect_status):
-            print('thread ends')
+            print('Child thread that run listening is ended')
+            
     def stop_listen(self):
         s = self.sel.get_map()
         keys = [i for i in s]
         fileobjs = [s[i] for i in keys]
-
         # None tell except server_socket
         socks = [file_obj[0] for file_obj in fileobjs if file_obj[3] != None]
-
         # for short, but not use because of readability
-        #_socks = [s[i][0] for i in s if s[i][3] != None]
-        
-        print(socks)
+        #_socks = [s[i][0] for i in s if s[i][3] != None]   
         for sock in socks:
             print('Stop connection with ', sock.getpeername())
             sock.close()
             self.sel.unregister(sock)
-
         #self.server_sock.shutdown(socket.SHUT_RDWR)
-        print ('0')
-        print ('2')
         self.connect_status = 0
-        print ('3')
         self.server_sock.close()
         self.sel.unregister(self.server_sock)
-        print ('4')
-        
-        print ('5')
-        
-        
         print('stop_listen')
-
 
     def start_connect(self, _sock):
         _connect, _address = _sock.accept() # accpet connection from client
@@ -76,12 +66,11 @@ class Server_Connection:
     def service_connect(self, _key, _mask):
         _sock = _key.fileobj
         _address = _key.data
-        
         if _mask & selectors.EVENT_READ:
             try:
                 recv_data = _sock.recv(1024)  # read data
             except ConnectionResetError:
-                print('Lost connection from ', _address)
+                print('Lost connection from ', _address)    
                 self.stop_connect(_sock)
             else:
                 if recv_data and recv_data != b'Close':

@@ -95,6 +95,15 @@ class client_window(QtWidgets.QMainWindow):
     def add_Click_Behavior(self, obj, func):
         obj.clicked.connect(func)
 
+    def showError(self, error, message):
+        msg = QtWidgets.QMessageBox()
+        msg.setFixedWidth(200)
+        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setText(error)
+        msg.setInformativeText(error + message)
+        msg.setWindowTitle(error)
+        return msg
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
 

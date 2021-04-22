@@ -3,24 +3,21 @@ import sys
 import time
 class Client_Connection:
     def __init__(self):
-        self.timeout = 1800
         self.connect_status = 0
         self.host = '0.0.0.0'
         self.port = 0 
         self.mainsock = 0
-        self.err = None
+        self.lost_connect = False
 
     def start_connect(self, host, port):
-        
         self.host = host
         self.port = port
         self.mainsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.mainsock.connect((self.host, self.port))
-
         except ConnectionRefusedError as e: # this is exception socket.error:
             print('Cant connect to host', e)
-            self.connect_status = 0
+            self.connect_status = -2    # Timout-status
             return
         else:
             self.connect_status = 1
@@ -35,7 +32,6 @@ class Client_Connection:
             message = data.encode('utf-8')
             s.sendall(message)
             '''
-        
         # keep thread running
         data = '1'
         while not (data == 'Close' or not data) and self.connect_status:
@@ -45,12 +41,10 @@ class Client_Connection:
         message = message.encode('utf-8')
         try:
             self.mainsock.sendall(message)
-        except ConnectionAbortedError:
+        except: # ConnectionAbortedError and ConnectionResetError
             print('Lost connection from ', self.mainsock.getpeername())
             self.connect_status = 0
-        except ConnectionResetError:
-            print('Lost connection from ', self.mainsock.getpeername())
-            self.connect_status = 0
+            self.lost_connect = True
     def stop_connect(self):
         print('Closed connection to ', self.mainsock.getpeername())
         endmessage = 'Close'

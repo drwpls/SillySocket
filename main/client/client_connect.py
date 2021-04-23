@@ -2,13 +2,13 @@ import socket
 import sys
 import time
 import logging
-
+from enum import Enum, auto
 # for debugging
 logging.basicConfig(level=logging.DEBUG)
 
 class Client_Connection:
     def __init__(self):
-        self.connect_status = 0
+        self.connect_status = self.Status_Code.DISCONNECT
         self.host = '0.0.0.0'
         self.port = 0 
         self.mainsock = 0
@@ -22,10 +22,10 @@ class Client_Connection:
             self.mainsock.connect((self.host, self.port))
         except ConnectionRefusedError as e: # this is exception socket.error:
             logging.debug('Cant connet to host {}'.format(e))
-            self.connect_status = -2    # Timout-status
+            self.connect_status =  self.Status_Code.TIMEOUT   # Timout-status
             return
         else:
-            self.connect_status = 1
+            self.connect_status =  self.Status_Code.CONNECTED
             logging.debug('Connected to server {}'.format(self.mainsock.getpeername()))
         
         # begin transfer data: (for commandline debugger)
@@ -39,7 +39,7 @@ class Client_Connection:
         else:
             # keep thread running
             data = '1'
-            while not (data == 'Close' or not data) and self.connect_status:
+            while not (data == 'Close' or not data) and self.connect_status ==  self.Status_Code.CONNECTED:
                 pass
     
     def send_message(self, message):
@@ -48,13 +48,19 @@ class Client_Connection:
             self.mainsock.sendall(message)
         except: # ConnectionAbortedError and ConnectionResetError
             logging.debug('Lost connection from {}'.format(self.mainsock.getpeername()))
-            self.connect_status = 0
+            self.connect_status =  self.Status_Code.DISCONNECT
             self.lost_connect = True
     def stop_connect(self):
         logging.debug('Closed connection to {}'.format(self.mainsock.getpeername()))
         endmessage = 'Close'
         self.send_message(endmessage)
-        self.connect_status = 0
+        self.connect_status =  self.Status_Code.DISCONNECT
+
+    class Status_Code(Enum):
+        CONNECTED = auto(),
+        DISCONNECT = auto(),
+        CONNECTING = auto(),
+        TIMEOUT = auto()
 
 if __name__ == '__main__':
     HOST = '127.0.0.1'  # The server's hostname or IP address

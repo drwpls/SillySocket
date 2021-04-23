@@ -20,7 +20,7 @@ def click_listenbox(window):
         window.timer_update_GUI.stop()
        
 def UPDATE_GUI(window):
-    if server_connection.connect_status > 1:
+    if server_connection.connect_status > 1: # In case there are client(s) connected to server
         window.ListenBox.setText('Connected to ' + \
             str(server_connection.connect_status - 1)+  ' client(s)\n'+ 
             'Click to Stop Listening')

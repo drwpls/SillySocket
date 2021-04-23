@@ -20,6 +20,7 @@ class server_window(QtWidgets.QMainWindow):
     @QtCore.Slot()
     def add_Click_Behavior(self, obj, func):
         obj.clicked.connect(func)
+        
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])

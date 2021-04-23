@@ -1,8 +1,8 @@
 # Python GUI
 import sys
-import random
 from PySide6 import QtCore, QtWidgets, QtGui
 import logging
+from enum import Enum, auto
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,17 +19,18 @@ class client_window(QtWidgets.QMainWindow):
 
         # IP box
         self.IPTextBox = QtWidgets.QLineEdit("127.0.0.1", self)
-        self.IPTextBox.setInputMask('000.000.000.000;_')
+        self.IPTextBox.setInputMask('000.000.000.000')
         self.IPTextBox.move(10,50)
         self.IPTextBox.setFixedWidth(200)
 
         # Port box
         self.PortTextBox =  QtWidgets.QLineEdit("65432", self)
-        self.PortTextBox.setInputMask('00000;_')
+        self.validator = QtGui.QIntValidator(0, 65535, self)
+        self.PortTextBox.setValidator(self.validator)
+        
         self.PortTextBox.move(self.IPTextBox.geometry().x() + self.IPTextBox.width(),50)
         self.PortTextBox.setFixedWidth(50)
     
-
         # Connect Button
         self.ConnectButton = QtWidgets.QPushButton("Connect!", self)
         self.ConnectButton.move(self.PortTextBox.geometry().x() + self.PortTextBox.width(), 50)
@@ -96,7 +97,32 @@ class client_window(QtWidgets.QMainWindow):
     @QtCore.Slot()
     def add_Click_Behavior(self, obj, func):
         obj.clicked.connect(func)
+    
+    def change_GUI_status(self, STATUS_CODE):
+        if STATUS_CODE == self.Status_Code.CONNECTING:
+            ConnectingString = ['Connecting', 'Connecting.', 'Connecting..', 'Connecting...']
+            text = self.ConnectButton.text()
+            index = 3
+            if (text != 'Connect!'):
+                index = ConnectingString.index(text)
+            index = (index + 1) % 4
+            self.ConnectButton.setText(ConnectingString[index])
 
+        if STATUS_CODE == self.Status_Code.CONNECTED:
+            self.ConnectButton.setText('Disconnect!')
+            self.ConnectStatus.setText('CONNECTED!')
+            self.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : green; }")
+
+        if STATUS_CODE == self.Status_Code.DISCONNECT:
+            self.ConnectButton.setText('Connect!')
+            self.ConnectStatus.setText('DISCONNECT!')
+            self.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
+
+        if STATUS_CODE == self.Status_Code.TIMEOUT:
+            self.ConnectButton.setText('Connect!')
+            self.ConnectStatus.setText('TIMEOUT!')
+            self.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : brown ; }")
+        
     def showError(self, error = 'NO CONNECTION', message = 'Please connect to server first'):
         msg = QtWidgets.QMessageBox()
         msg.setFixedWidth(200)
@@ -105,6 +131,12 @@ class client_window(QtWidgets.QMainWindow):
         msg.setInformativeText(message)
         msg.setWindowTitle(error)
         return msg
+    
+    class Status_Code(Enum):
+        CONNECTED = auto(),
+        DISCONNECT = auto(),
+        CONNECTING = auto(),
+        TIMEOUT = auto()
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])

@@ -18,24 +18,37 @@ FEATURE_CODE = {
 client_connection = client_connect.Client_Connection()
 
 def click_connectbutton(window):
-    if (client_connection.connect_status == 0 or client_connection.connect_status == -2): # -2 = timeout
-        client_connection.connect_status = -1  # Connecting status
-        window.ConnectStatus.setText('DISCONNECT!')
-        window.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
+    if (client_connection.connect_status ==   client_connection.Status_Code.DISCONNECT \
+        or client_connection.connect_status == client_connection.Status_Code.TIMEOUT):
+        
         host_str = str(window.IPTextBox.text())
-        port_str = int(window.PortTextBox.text())   
+        port_str = window.PortTextBox.text()
+        pos = 0
+        if window.validator.validate(port_str, pos)[0] != window.validator.Acceptable:
+            errmsg = window.showError('Invalid Address', 'Invalid Port')
+            errmsg.exec_()
+            return -1
+        port_str = int(port_str)
+        # Try to connect to server for the first time, after disconnect or timeout seasion
+        # turn status to connecting
+        client_connection.connect_status = client_connection.Status_Code.CONNECTING
+        window.change_GUI_status(window.Status_Code.CONNECTING)
+        # try to connect to host
         connection_thread = threading.Thread(target = client_connection.start_connect, args = (host_str, port_str))
         connection_thread.start()
+
+        # start timer - update GUI and send sample data to server (PING)
         window.timer_update_GUI.start(500)
-    elif (client_connection.connect_status == 1):
+
+    elif (client_connection.connect_status == client_connection.Status_Code.CONNECTED):
+        # Users choose to close connection
         client_connection.stop_connect()
-        window.ConnectButton.setText('Connect!')
-        window.ConnectStatus.setText('DISCONNECT!')
-        window.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
+        window.change_GUI_status(window.Status_Code.DISCONNECT)
+        # stop the timer
         window.timer_update_GUI.stop()
 
 def click_sentbutton(window):
-    if client_connection.connect_status != 1:
+    if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
         # by default, showError will display NOCONNECTION error
         errmsg = window.showError()
         errmsg.exec_()
@@ -44,14 +57,16 @@ def click_sentbutton(window):
     client_connection.send_message(message)
 
 def click_shutdownbutton(window):
-    if client_connection.connect_status != 1:
+    if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
+        # show error msg
         errmsg = window.showError()
         errmsg.exec_()
         return -1
+    # if connected, perform shutdown_dialog
     shutdown_dialog = shutdown.Shutdown_Dialog()
     dialog_result_code = shutdown_dialog.exec_()
 
-    # debugging
+    # for debugging
     if dialog_result_code == shutdown_dialog.Accepted:
         # sent the command to server:
         client_connection.send_message(FEATURE_CODE['Shutdown'] + str(shutdown_dialog.timeout))
@@ -64,39 +79,29 @@ def click_shutdownbutton(window):
         logging.debug('The result code is {}'.format(dialog_result_code))
 
 def UPDATE_GUI(window):
-    if (client_connection.connect_status == -1): # Connecting-status
-        # just change button text
-        ConnectingString = ['Connecting', 'Connecting.', 'Connecting..', 'Connecting...']
-        text = window.ConnectButton.text()
-        index = 3
-        if (text != 'Connect!'):
-            index = ConnectingString.index(text)
-        #index = ConnectingString.index(text)
-        index = (index + 1) % 4
-        window.ConnectButton.setText(ConnectingString[index])
-    elif (client_connection.connect_status == -2):
-        window.ConnectButton.setText('Connect!')
-        window.ConnectStatus.setText('TIMEOUT!')
-        window.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : brown ; }")
-    elif (client_connection.connect_status == 0):   # Disconnect-status\
+    if (client_connection.connect_status == client_connection.Status_Code.CONNECTING):
+        window.change_GUI_status(window.Status_Code.CONNECTING)
+    elif (client_connection.connect_status == client_connection.Status_Code.TIMEOUT):
+        window.change_GUI_status(window.Status_Code.TIMEOUT)
+    elif (client_connection.connect_status == client_connection.Status_Code.DISCONNECT):
+        # In case lost connection from server
         if (client_connection.lost_connect == True):
             client_connection.lost_connect = False
             server_address = str(client_connection.mainsock.getpeername()[0]) + ':' + str(client_connection.mainsock.getpeername()[1])
             errmsg = window.showError('Lost connection', ' from server: ' +  server_address)
             errmsg.exec_()
-        window.ConnectButton.setText('Connect!')
-        window.ConnectStatus.setText('DISCONNECT!')
-        window.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
-    elif (client_connection.connect_status == 1):               # in-connecting
-        window.ConnectButton.setText('Disconnect!')
-        window.ConnectStatus.setText('CONNECTED!')
-        window.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : green; }")
+        window.change_GUI_status(window.Status_Code.DISCONNECT)
+    elif (client_connection.connect_status == client_connection.Status_Code.CONNECTED):               # in-connecting
+        window.change_GUI_status(window.Status_Code.CONNECTED)
+        # sent '00' after every 500ms to check server's signal
         client_connection.send_message('00')
 
 def onQuit():
-    if client_connection.connect_status in [-1, 1]:
+    if client_connection.connect_status == client_connection.Status_Code.CONNECTING \
+        or client_connection.connect_status == client_connection.Status_Code.CONNECTED:
         client_connection.stop_connect()
     app.exit()
+    
 def connect_GUI_Feature(window):
     app.lastWindowClosed.connect(onQuit)
     window.timer_update_GUI.timeout.connect(lambda: UPDATE_GUI(window))
@@ -109,7 +114,6 @@ if __name__ == '__main__':
     app.setQuitOnLastWindowClosed(False)
     window = client_gui.client_window()
     window.show()
-    host_str = window.IPTextBox.text()
-    #print(host_str)
+
     connect_GUI_Feature(window)
     sys.exit(app.exec_())

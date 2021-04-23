@@ -2,6 +2,9 @@
 import sys
 import random
 from PySide6 import QtCore, QtWidgets, QtGui
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 class client_window(QtWidgets.QMainWindow):
     def __init__(self):
@@ -39,40 +42,39 @@ class client_window(QtWidgets.QMainWindow):
         buttonwidth = -10 + self.ConnectButton.geometry().x() + self.ConnectButton.width()
 
         # Process Running button
-        self.ProcessRunning = QtWidgets.QPushButton("View running process", self)
-        self.ProcessRunning.move(10, 100)
-        self.ProcessRunning.setFixedWidth(buttonwidth)
+        self.ProcessRunningButton = QtWidgets.QPushButton("View running process", self)
+        self.ProcessRunningButton.move(10, 100)
+        self.ProcessRunningButton.setFixedWidth(buttonwidth)
 
         # App running
-        self.AppRunning = QtWidgets.QPushButton("View running application", self)
-        self.AppRunning.move(10, 140)
-        self.AppRunning.setFixedWidth(buttonwidth)
+        self.AppRunningButton = QtWidgets.QPushButton("View running application", self)
+        self.AppRunningButton.move(10, 140)
+        self.AppRunningButton.setFixedWidth(buttonwidth)
 
         # Shutdown
-        self.Shutdown = QtWidgets.QPushButton("Shut remote computer down", self)
-        self.Shutdown.move(10, 180)
-        self.Shutdown.setFixedWidth(buttonwidth)
+        self.ShutdownButton = QtWidgets.QPushButton("Shut remote computer down", self)
+        self.ShutdownButton.move(10, 180)
+        self.ShutdownButton.setFixedWidth(buttonwidth)
 
         # ShotScreen
-        self.ShotScreen = QtWidgets.QPushButton("Get Screen Shot", self)
-        self.ShotScreen.move(10, 220)
-        self.ShotScreen.setFixedWidth(buttonwidth)
+        self.ShotScreenButton = QtWidgets.QPushButton("Get Screen Shot", self)
+        self.ShotScreenButton.move(10, 220)
+        self.ShotScreenButton.setFixedWidth(buttonwidth)
 
         # KeyStroke
-        self.KeyStroke = QtWidgets.QPushButton("Get Key Stroke", self)
-        self.KeyStroke.move(10, 260)
-        self.KeyStroke.setFixedWidth(buttonwidth)
+        self.KeyStrokeButton = QtWidgets.QPushButton("Get Key Stroke", self)
+        self.KeyStrokeButton.move(10, 260)
+        self.KeyStrokeButton.setFixedWidth(buttonwidth)
 
         # RegistryEdit
-        self.RegistryEdit = QtWidgets.QPushButton("Edit remote computer registry", self)
-        self.RegistryEdit.move(10, 300)
-        self.RegistryEdit.setFixedWidth(buttonwidth)
+        self.RegistryEditButton = QtWidgets.QPushButton("Edit remote computer registry", self)
+        self.RegistryEditButton.move(10, 300)
+        self.RegistryEditButton.setFixedWidth(buttonwidth)
 
         # QuitButton
         self.QuitButton = QtWidgets.QPushButton("QUIT", self)
         self.QuitButton.move(buttonwidth + 20, 100)
-        self.QuitButton.setFixedHeight(self.RegistryEdit.geometry().y() + self.RegistryEdit.height() - 100)
-
+        self.QuitButton.setFixedHeight(self.RegistryEditButton.geometry().y() + self.RegistryEditButton.height() - 100)
 
         #inputdebugger:
         self.Input = QtWidgets.QLineEdit(self)
@@ -95,12 +97,12 @@ class client_window(QtWidgets.QMainWindow):
     def add_Click_Behavior(self, obj, func):
         obj.clicked.connect(func)
 
-    def showError(self, error, message):
+    def showError(self, error = 'NO CONNECTION', message = 'Please connect to server first'):
         msg = QtWidgets.QMessageBox()
         msg.setFixedWidth(200)
         msg.setIcon(QtWidgets.QMessageBox.Critical)
         msg.setText(error)
-        msg.setInformativeText(error + message)
+        msg.setInformativeText(message)
         msg.setWindowTitle(error)
         return msg
 

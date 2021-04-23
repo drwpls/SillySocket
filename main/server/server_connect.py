@@ -1,6 +1,18 @@
 import selectors    # working with multi-clients
 import socket       # socket 
+import logging
+import feature
 
+FEATURE_CODE = {
+    '01' : feature.ProcessRunning,
+    '02' : feature.AppRunning,
+    '03' : feature.ShutDown,
+    '04' : feature.ShotScreen,
+    '05' : feature.KeyStroke,
+    '06' : feature.RegistryEdit
+}
+
+logging.basicConfig(level=logging.DEBUG)
 class Server_Connection:
     def __init__(self, host, port):
         self.connect_status = 0
@@ -16,7 +28,7 @@ class Server_Connection:
         # accept 10 connections
         self.server_sock.listen(10) 
         self.connect_status = 1 # set to start listening flag, 1 is one socket (server_sock)
-        print('listening on', (self.host, self.port))
+        logging.debug('Listening on {} : {}'.format(self.host, self.port))
         while self.connect_status:
             try:
                 event = self.sel.select(timeout = 0) # timeout = 0: wait until event appear
@@ -29,7 +41,7 @@ class Server_Connection:
                     else:                   # service connects
                         self.service_connect(key, mask)
         if (not self.connect_status):
-            print('Child thread that run listening is ended')
+            logging.debug('Child thread running listen task ended')
             
     def stop_listen(self):
         s = self.sel.get_map()
@@ -40,14 +52,14 @@ class Server_Connection:
         # for short, but not use because of readability
         #_socks = [s[i][0] for i in s if s[i][3] != None]   
         for sock in socks:
-            print('Stop connection with ', sock.getpeername())
+            logging.debug('Stop connection with {}'.format(sock.getpeername()))
             sock.close()
             self.sel.unregister(sock)
         #self.server_sock.shutdown(socket.SHUT_RDWR)
         self.connect_status = 0
         self.server_sock.close()
         self.sel.unregister(self.server_sock)
-        print('stop_listen')
+        logging.debug('Stop listening')
 
     def start_connect(self, _sock):
         _connect, _address = _sock.accept() # accpet connection from client
@@ -56,7 +68,7 @@ class Server_Connection:
         _event = selectors.EVENT_READ | selectors.EVENT_WRITE
         self.sel.register(_connect, events = _event, data = _data)        # register this connect to sel, with wait-event are both read & write
         self.connect_status += 1
-        print('Start connection with ', _address)
+        logging.debug('Start connection with {}'.format(_address))
 
     def stop_connect(self, _sock):
         self.sel.unregister(_sock)
@@ -70,17 +82,39 @@ class Server_Connection:
             try:
                 recv_data = _sock.recv(1024)  # read data
             except ConnectionResetError:
-                print('Lost connection from ', _address)    
+                logging.debug('Lost connection from {}'.format(_address))
                 self.stop_connect(_sock)
             else:
                 if recv_data and recv_data != b'Close':
-                    print('Message from ', _address, recv_data)
+                    if recv_data == b'00':
+                        logging.debug('PING from {}'.format(_address))
+                    else:
+                        self.handle_message(recv_data)
+                        logging.debug('Message from {}: {}'.format(_address, recv_data))
                 else:
-                    print('Closing connection to', _address)
+                    logging.debug('Closing connection to {}'.format(_address))
                     self.stop_connect(_sock)  
             
         if _mask & selectors.EVENT_WRITE:
             pass
+
+    def handle_message(self, message):
+        message = message.decode('utf-8')
+        feature_code = message[:2]
+        command = message[2:]
+        logging.debug('Message is {} '.format(message))
+        logging.debug('Feature code is {} '.format(feature_code))
+        logging.debug('Command is {} '.format(command))
+        if (feature_code not in FEATURE_CODE):
+            logging.debug('In if bloc')
+            # some error happen
+            return -1
+        # send command to correct function
+        # do the task and answer the client
+        task_obj = FEATURE_CODE[feature_code](command)
+        result_code = task_obj.do_task()
+        response = feature_code + result_code
+        # send response to client
 
 if __name__ == '__main__':
     host = '0.0.0.0'    # all network interface

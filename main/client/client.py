@@ -2,7 +2,18 @@ import client_gui
 import client_connect
 import sys
 import threading
-import time
+import shutdown
+import logging
+
+FEATURE_CODE = {
+    'PING' : '00',
+    'ProcessRunning' : '01',
+    'AppRunning' : '02',
+    'Shutdown' : '03',
+    'ShotScreen' : '04',
+    'KeyStroke' : '05',
+    'RegistryEdit' : '06',
+}
 
 client_connection = client_connect.Client_Connection()
 
@@ -24,10 +35,33 @@ def click_connectbutton(window):
         window.timer_update_GUI.stop()
 
 def click_sentbutton(window):
-    if not client_connection.connect_status:
+    if client_connection.connect_status != 1:
+        # by default, showError will display NOCONNECTION error
+        errmsg = window.showError()
+        errmsg.exec_()
         return -1
     message = str(window.Input.text())
     client_connection.send_message(message)
+
+def click_shutdownbutton(window):
+    if client_connection.connect_status != 1:
+        errmsg = window.showError()
+        errmsg.exec_()
+        return -1
+    shutdown_dialog = shutdown.Shutdown_Dialog()
+    dialog_result_code = shutdown_dialog.exec_()
+
+    # debugging
+    if dialog_result_code == shutdown_dialog.Accepted:
+        # sent the command to server:
+        client_connection.send_message(FEATURE_CODE['Shutdown'] + str(shutdown_dialog.timeout))
+        logging.debug('Shutdown accepted!')
+        logging.debug('Timeout is {}'.format(shutdown_dialog.timeout))
+    # else, user cancel shutdown
+    elif dialog_result_code == shutdown_dialog.Rejected:
+        logging.debug('Shutdown rejected!')
+    else:
+        logging.debug('The result code is {}'.format(dialog_result_code))
 
 def UPDATE_GUI(window):
     if (client_connection.connect_status == -1): # Connecting-status
@@ -57,7 +91,7 @@ def UPDATE_GUI(window):
         window.ConnectButton.setText('Disconnect!')
         window.ConnectStatus.setText('CONNECTED!')
         window.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : green; }")
-        client_connection.send_message('0')
+        client_connection.send_message('00')
 
 def onQuit():
     if client_connection.connect_status in [-1, 1]:
@@ -65,9 +99,10 @@ def onQuit():
     app.exit()
 def connect_GUI_Feature(window):
     app.lastWindowClosed.connect(onQuit)
+    window.timer_update_GUI.timeout.connect(lambda: UPDATE_GUI(window))
     window.add_Click_Behavior(window.ConnectButton,lambda: click_connectbutton(window))
     window.add_Click_Behavior(window.SentButton, lambda: click_sentbutton(window))
-    window.timer_update_GUI.timeout.connect(lambda: UPDATE_GUI(window))
+    window.add_Click_Behavior(window.ShutdownButton, lambda: click_shutdownbutton(window))
 
 if __name__ == '__main__':
     app = client_gui.QtWidgets.QApplication([])

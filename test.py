@@ -1,50 +1,94 @@
-import socket
-from PIL import Image, ImageGrab
 import sys
-from PySide6 import QtCore, QtWidgets, QtGui
-import logging
+import os
+from PySide6.QtWidgets import QApplication, QWidget, QComboBox, QPushButton, QFileDialog, QVBoxLayout
 
-logging.basicConfig(level=logging.DEBUG)
-class ScreenShot_Dialog(QtWidgets.QDialog):
+class MyApp(QWidget):
     def __init__(self):
         super().__init__()
+        self.window_width, self.window_height = 800, 200
+        self.setMinimumSize(self.window_width, self.window_height)
 
-        self.setWindowTitle('ScreenShot')      
-        #self.setFixedSize(1000, 500)
-        self.resize(830, 410)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
-        self.Picture_box = QtWidgets.QLabel(self)
-        #self.Picture_box.setFixedSize(800,400)
-        self.Picture_box.move(0, 10)
-        self.Picture_box.resize(400, 710)
+        self.options = ('Get File Name', 'Get File Names', 'Get Folder Dir', 'Save File Name')
 
-        self.Pixmap = QtGui.QPixmap('example.png')
-        myScaledPixmap = self.Pixmap.scaled(self.Picture_box.size(), QtGui.Qt.KeepAspectRatio) 
-        self.Picture_box.setPixmap(myScaledPixmap)
+        self.combo = QComboBox()
+        self.combo.addItems(self.options)
+        layout.addWidget(self.combo)
 
-        self.Picture_Layout = QtWidgets.QHBoxLayout(self)
-        self.Picture_Layout.addWidget(self.Picture_box)
+        btn = QPushButton('Launch')
+        btn.clicked.connect(self.launchDialog)
+        layout.addWidget(btn)
 
-        self.TakeButton = QtWidgets.QPushButton('Take', self)
-        self.TakeButton.move(720, 10)
+    def launchDialog(self):
+        option = self.options.index(self.combo.currentText())
 
-        self.SaveButton = QtWidgets.QPushButton('Save', self)
-        self.SaveButton.move(720, 50)
-        
-        #self.show()
+        if option == 0:
+            response = self.getFileName()
+        elif option == 1:
+            response = self.getFileNames()
+        elif option == 2:
+            response = self.getDirectory()
+        elif option == 3:
+            response = self.getSaveFileName()
+        else:
+            print('Got Nothing')
 
-def receive_screenshot(sock):
-    img = open('received.png', 'wb')
+    def getFileName(self):
+        file_filter = 'Data File (*.xlsx *.csv *.dat);; Excel File (*.xlsx *.xls)'
+        response = QFileDialog.getOpenFileName(
+            parent=self,
+            caption='Select a data file',
+            directory=os.getcwd(),
+            filter=file_filter,
+            initialFilter='Excel File (*.xlsx *.xls)'
+        )
+        print(response)
+        return response[0]
 
-    data = sock.recv(1024)
-    while data and data.decode('utf8') != 'done':
-        img.write(data)
-        data = sock.recv(1024)
-    
-    img.close()
+    def getFileNames(self):
+        file_filter = 'Data File (*.xlsx *.csv *.dat);; Excel File (*.xlsx *.xls)'
+        response = QFileDialog.getOpenFileNames(
+            parent=self,
+            caption='Select a data file',
+            directory=os.getcwd(),
+            filter=file_filter,
+            initialFilter='Excel File (*.xlsx *.xls)'
+        )
+        return response[0]
+
+    def getDirectory(self):
+        response = QFileDialog.getExistingDirectory(
+            self,
+            caption='Select a folder'
+        )
+        return response 
+
+    def getSaveFileName(self):
+        file_filter = 'Data File (*.xlsx *.csv *.dat);; Excel File (*.xlsx *.xls)'
+        response = QFileDialog.getSaveFileName(
+            parent=self,
+            caption='Select a data file',
+            #directory= 'Data File.dat',
+            filter=file_filter,
+            #initialFilter='Excel File (*.xlsx *.xls)'
+        )
+        print(response)
+        return response[0]
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication([])
-    window = ScreenShot_Dialog()
-    window.show()
-    sys.exit(app.exec_())
+    app = QApplication(sys.argv)
+    app.setStyleSheet('''
+        QWidget {
+            font-size: 35px;
+        }
+    ''')
+    
+    myApp = MyApp()
+    myApp.show()
+
+    try:
+        sys.exit(app.exec_())
+    except SystemExit:
+        print('Closing Window...')

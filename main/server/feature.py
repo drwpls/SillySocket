@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import socket
@@ -6,7 +7,6 @@ import subprocess
 from PIL import Image, ImageGrab
 import wmi
 from io import BytesIO
-from server_connect import *
 
 class ProcessRunning:
     def __init__(self, _sock, opcode):
@@ -50,23 +50,25 @@ class ShutDown:
         return platforms[sys.platform]
 
 class ShotScreen:
-    def __init(self, _sock, opcode):
+    def __init__(self, _sock, opcode):
         self.opcode = opcode
         self.sock = _sock
 
-    def do_work(self):
+    def do_task(self):
         if self.opcode == 'exit':
             return '01' # stop code
         elif self.opcode == 'take':
             img = ImageGrab.grab()
 
             img.save('screenshot.png', format='PNG')
-            file = open('screnshot.png', 'rb')
+            file = open('screenshot.png', 'rb')
             data = file.read(1024)
             while (data):
-                self._sock.send(data)
+                logging.debug('sendding')
+                self.sock.sendall(data)
                 data = file.read(1024)
-            self._sock.send(bytes('done', 'utf8'))
+            logging.debug('done')
+            self.sock.sendall(b'done')
             file.close()
             return '00'  # Successful
 

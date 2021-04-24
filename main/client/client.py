@@ -4,6 +4,7 @@ import sys
 import threading
 import shutdown
 import logging
+import shotscreen
 
 FEATURE_CODE = {
     'PING' : '00',
@@ -18,7 +19,7 @@ FEATURE_CODE = {
 client_connection = client_connect.Client_Connection()
 
 def click_connectbutton(window):
-    if (client_connection.connect_status ==   client_connection.Status_Code.DISCONNECT \
+    if (client_connection.connect_status == client_connection.Status_Code.DISCONNECT \
         or client_connection.connect_status == client_connection.Status_Code.TIMEOUT):
         
         host_str = str(window.IPTextBox.text())
@@ -58,25 +59,24 @@ def click_sentbutton(window):
 
 def click_shutdownbutton(window):
     if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
+        errmsg = window.showError()
+        errmsg.exec_()
+        return -1
+
+    # if connected, perform shutdown_dialog
+    shutdown_dialog = shutdown.Shutdown_Dialog(client_connection.mainsock)
+    dialog_result_code = shutdown_dialog.exec_()
+
+def click_shotscreenbutton(window):
+    if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
         # show error msg
         errmsg = window.showError()
         errmsg.exec_()
         return -1
-    # if connected, perform shutdown_dialog
-    shutdown_dialog = shutdown.Shutdown_Dialog()
-    dialog_result_code = shutdown_dialog.exec_()
 
-    # for debugging
-    if dialog_result_code == shutdown_dialog.Accepted:
-        # sent the command to server:
-        client_connection.send_message(FEATURE_CODE['Shutdown'] + str(shutdown_dialog.timeout))
-        logging.debug('Shutdown accepted!')
-        logging.debug('Timeout is {}'.format(shutdown_dialog.timeout))
-    # else, user cancel shutdown
-    elif dialog_result_code == shutdown_dialog.Rejected:
-        logging.debug('Shutdown rejected!')
-    else:
-        logging.debug('The result code is {}'.format(dialog_result_code))
+    shot_screen = shotscreen.ShotScreen_Dialog(client_connection.mainsock)
+    subthread = threading.Thread(target = shot_screen.exec_(), args = ())
+    subthread.start()
 
 def UPDATE_GUI(window):
     if (client_connection.connect_status == client_connection.Status_Code.CONNECTING):
@@ -94,7 +94,7 @@ def UPDATE_GUI(window):
     elif (client_connection.connect_status == client_connection.Status_Code.CONNECTED):               # in-connecting
         window.change_GUI_status(window.Status_Code.CONNECTED)
         # sent '00' after every 500ms to check server's signal
-        client_connection.send_message('00')
+        #client_connection.send_message('00')
 
 def onQuit():
     if client_connection.connect_status == client_connection.Status_Code.CONNECTING \
@@ -108,6 +108,7 @@ def connect_GUI_Feature(window):
     window.add_Click_Behavior(window.ConnectButton,lambda: click_connectbutton(window))
     window.add_Click_Behavior(window.SentButton, lambda: click_sentbutton(window))
     window.add_Click_Behavior(window.ShutdownButton, lambda: click_shutdownbutton(window))
+    window.add_Click_Behavior(window.ShotScreenButton, lambda: click_shotscreenbutton(window))
 
 if __name__ == '__main__':
     app = client_gui.QtWidgets.QApplication([])

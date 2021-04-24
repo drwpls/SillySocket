@@ -1,13 +1,25 @@
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
 import logging
+import socket
 
 logging.basicConfig(level=logging.DEBUG)
 
+FEATURE_CODE = {
+    'PING' : '00',
+    'ProcessRunning' : '01',
+    'AppRunning' : '02',
+    'Shutdown' : '03',
+    'ShotScreen' : '04',
+    'KeyStroke' : '05',
+    'RegistryEdit' : '06',
+}
+
 class Shutdown_Dialog(QtWidgets.QDialog):
-    def __init__(self):
+    def __init__(self, sock):
         super().__init__()
         self.timeout = 0
+        self.sock = sock
 
         self.setWindowTitle('Shutdown')      
         self.setFixedSize(220, 70)
@@ -32,8 +44,13 @@ class Shutdown_Dialog(QtWidgets.QDialog):
     def click_shutdownconfirmbutton(self):
         logging.debug('Set return to Accepted')
         self.timeout = int('0' + self.TimeoutBox.text()) # Avoid blank input
+        message = FEATURE_CODE['Shutdown'] + str(self.timeout)
+        message = message.encode('utf-8')
+        self.sock.sendall(message)
         logging.debug(self.timeout)
         self.accept()
+    
+
         
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

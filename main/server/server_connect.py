@@ -89,8 +89,8 @@ class Server_Connection:
                     if recv_data == b'00':
                         logging.debug('PING from {}'.format(_address))
                     else:
-                        self.handle_message(_sock, recv_data)
                         logging.debug('Message from {}: {}'.format(_address, recv_data))
+                        self.handle_message(_sock, recv_data)
                 else:
                     logging.debug('Closing connection to {}'.format(_address))
                     self.stop_connect(_sock)  
@@ -102,18 +102,15 @@ class Server_Connection:
         message = message.decode('utf-8')
         feature_code = message[:2]
         command = message[2:]
-        logging.debug('Message is {} '.format(message))
-        logging.debug('Feature code is {} '.format(feature_code))
-        logging.debug('Command is {} '.format(command))
+        logging.debug('feature_code and command is {} : {}'.format(feature_code, command))
         if (feature_code not in FEATURE_CODE):
-            logging.debug('In if bloc')
             # some error happen
             return -1
         # send command to correct function
         # do the task and answer the client
+        logging.debug('FEATURE_CODE[feature_code] is {}'.format(FEATURE_CODE[feature_code]))
         task_obj = FEATURE_CODE[feature_code](_sock, command)
         result_code = task_obj.do_task()
-        response = feature_code + result_code
         # send response to client
 
 if __name__ == '__main__':

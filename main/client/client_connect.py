@@ -35,7 +35,7 @@ class Client_Connection:
                 print('Input message')
                 data = str(input())
                 message = data.encode('utf-8')
-                s.sendall(message)
+                self.mainsock.sendall(message)
         else:
             # keep thread running
             data = '1'
@@ -50,6 +50,7 @@ class Client_Connection:
             logging.debug('Lost connection from {}'.format(self.mainsock.getpeername()))
             self.connect_status =  self.Status_Code.DISCONNECT
             self.lost_connect = True
+
     def stop_connect(self):
         logging.debug('Closed connection to {}'.format(self.mainsock.getpeername()))
         endmessage = 'Close'

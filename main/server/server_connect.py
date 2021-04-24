@@ -89,7 +89,7 @@ class Server_Connection:
                     if recv_data == b'00':
                         logging.debug('PING from {}'.format(_address))
                     else:
-                        self.handle_message(recv_data)
+                        self.handle_message(_sock, recv_data)
                         logging.debug('Message from {}: {}'.format(_address, recv_data))
                 else:
                     logging.debug('Closing connection to {}'.format(_address))
@@ -98,7 +98,7 @@ class Server_Connection:
         if _mask & selectors.EVENT_WRITE:
             pass
 
-    def handle_message(self, message):
+    def handle_message(self, _sock, message):
         message = message.decode('utf-8')
         feature_code = message[:2]
         command = message[2:]
@@ -111,7 +111,7 @@ class Server_Connection:
             return -1
         # send command to correct function
         # do the task and answer the client
-        task_obj = FEATURE_CODE[feature_code](command)
+        task_obj = FEATURE_CODE[feature_code](_sock, command)
         result_code = task_obj.do_task()
         response = feature_code + result_code
         # send response to client

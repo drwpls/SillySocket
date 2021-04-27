@@ -1,94 +1,107 @@
+#!/usr/bin/env python
 import sys
+import sys
+if sys.version_info[0] >= 3:
+    import PySimpleGUI as sg
+else:
+    import PySimpleGUI27 as sg
 import os
-from PySide6.QtWidgets import QApplication, QWidget, QComboBox, QPushButton, QFileDialog, QVBoxLayout
+import signal
+import psutil
+import operator
 
-class MyApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.window_width, self.window_height = 800, 200
-        self.setMinimumSize(self.window_width, self.window_height)
 
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+"""
+    Utility to show running processes, CPU usage and provides way to kill processes.
+    Based on psutil package that is easily installed using pip
+"""
 
-        self.options = ('Get File Name', 'Get File Names', 'Get Folder Dir', 'Save File Name')
+def kill_proc_tree(pid, sig=signal.SIGTERM, include_parent=True,
+                   timeout=None, on_terminate=None):
+    """Kill a process tree (including grandchildren) with signal
+    "sig" and return a (gone, still_alive) tuple.
+    "on_terminate", if specified, is a callabck function which is
+    called as soon as a child terminates.
+    """
+    if pid == os.getpid():
+        raise RuntimeError("I refuse to kill myself")
+    parent = psutil.Process(pid)
+    children = parent.children(recursive=True)
+    if include_parent:
+        children.append(parent)
+    for p in children:
+        p.send_signal(sig)
+    gone, alive = psutil.wait_procs(children, timeout=timeout,
+                                    callback=on_terminate)
+    return (gone, alive)
 
-        self.combo = QComboBox()
-        self.combo.addItems(self.options)
-        layout.addWidget(self.combo)
 
-        btn = QPushButton('Launch')
-        btn.clicked.connect(self.launchDialog)
-        layout.addWidget(btn)
+def main():
 
-    def launchDialog(self):
-        option = self.options.index(self.combo.currentText())
+    # ----------------  Create Form  ----------------
+    # sg.ChangeLookAndFeel('Topanga')
 
-        if option == 0:
-            response = self.getFileName()
-        elif option == 1:
-            response = self.getFileNames()
-        elif option == 2:
-            response = self.getDirectory()
-        elif option == 3:
-            response = self.getSaveFileName()
+    layout = [[sg.Text('Process Killer - Choose one or more processes',
+                       size=(45,1), font=('Helvetica', 15), text_color='red')],
+              [sg.Listbox(values=[' '], size=(50, 30), select_mode=sg.SELECT_MODE_EXTENDED,  font=('Courier', 12), key='_processes_')],
+              [sg.Text('Click refresh once or twice.. once for list, second to get CPU usage')],
+              [sg.T('Filter by typing name', font='ANY 14'), sg.In(size=(15,1), font='any 14', key='_filter_')],
+              [sg.RButton('Sort by Name', ),
+               sg.RButton('Sort by % CPU', button_color=('white', 'DarkOrange2')),
+               sg.RButton('Kill', button_color=('white','red'), bind_return_key=True),
+               sg.Exit(button_color=('white', 'sea green'))]]
+
+    window = sg.Window('Process Killer',
+                       keep_on_top=True,
+                       auto_size_buttons=False,
+                       default_button_element_size=(12,1),
+                       return_keyboard_events=True,
+                       ).Layout(layout)
+
+    display_list = None
+    # ----------------  main loop  ----------------
+    while (True):
+        # --------- Read and update window --------
+        button, values = window.Read()
+
+        if 'Mouse' in button or 'Control' in button or 'Shift' in button:
+            continue
+        # --------- Do Button Operations --------
+        if values is None or button == 'Exit':
+            break
+
+        if button == 'Sort by Name':
+            psutil.cpu_percent(interval=1)
+            procs = psutil.process_iter()
+            all_procs = [[proc.cpu_percent(), proc.name(), proc.pid] for proc in procs]
+            sorted_by_cpu_procs = sorted(all_procs, key=operator.itemgetter(1), reverse=False)
+            display_list = []
+            for process in sorted_by_cpu_procs:
+                display_list.append('{:5d} {:5.2f} {}\n'.format(process[2], process[0]/10, process[1]))
+            window.FindElement('_processes_').Update(display_list)
+        elif button == 'Kill':
+            processes_to_kill = values['_processes_']
+            for proc in processes_to_kill:
+                pid = int(proc[0:5])
+                if sg.PopupYesNo('About to kill {} {}'.format(pid, proc[13:]), keep_on_top=True) == 'Yes':
+                    kill_proc_tree(pid=pid)
+        elif button == 'Sort by % CPU':
+            psutil.cpu_percent(interval=1)
+            procs = psutil.process_iter()
+            all_procs = [[proc.cpu_percent(), proc.name(), proc.pid] for proc in procs]
+            sorted_by_cpu_procs = sorted(all_procs, key=operator.itemgetter(0), reverse=True)
+            display_list = []
+            for process in sorted_by_cpu_procs:
+                display_list.append('{:5d} {:5.2f} {}\n'.format(process[2], process[0]/10, process[1]))
+            window.FindElement('_processes_').Update(display_list)
         else:
-            print('Got Nothing')
+            if display_list is not None:
+                new_output = []
+                for line in display_list:
+                    if values['_filter_'] in line.lower():
+                        new_output.append(line)
+                window.FindElement('_processes_').Update(new_output)
 
-    def getFileName(self):
-        file_filter = 'Data File (*.xlsx *.csv *.dat);; Excel File (*.xlsx *.xls)'
-        response = QFileDialog.getOpenFileName(
-            parent=self,
-            caption='Select a data file',
-            directory=os.getcwd(),
-            filter=file_filter,
-            initialFilter='Excel File (*.xlsx *.xls)'
-        )
-        print(response)
-        return response[0]
 
-    def getFileNames(self):
-        file_filter = 'Data File (*.xlsx *.csv *.dat);; Excel File (*.xlsx *.xls)'
-        response = QFileDialog.getOpenFileNames(
-            parent=self,
-            caption='Select a data file',
-            directory=os.getcwd(),
-            filter=file_filter,
-            initialFilter='Excel File (*.xlsx *.xls)'
-        )
-        return response[0]
-
-    def getDirectory(self):
-        response = QFileDialog.getExistingDirectory(
-            self,
-            caption='Select a folder'
-        )
-        return response 
-
-    def getSaveFileName(self):
-        file_filter = 'Data File (*.xlsx *.csv *.dat);; Excel File (*.xlsx *.xls)'
-        response = QFileDialog.getSaveFileName(
-            parent=self,
-            caption='Select a data file',
-            #directory= 'Data File.dat',
-            filter=file_filter,
-            #initialFilter='Excel File (*.xlsx *.xls)'
-        )
-        print(response)
-        return response[0]
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    app.setStyleSheet('''
-        QWidget {
-            font-size: 35px;
-        }
-    ''')
-    
-    myApp = MyApp()
-    myApp.show()
-
-    try:
-        sys.exit(app.exec_())
-    except SystemExit:
-        print('Closing Window...')
+if __name__ == "__main__":
+    main()

@@ -1,9 +1,11 @@
-import client_gui
-import client_connect
 import sys
 import threading
-import shutdown
 import logging
+
+import client_gui
+import client_connect
+
+import shutdown
 import shotscreen
 
 FEATURE_CODE = {
@@ -75,6 +77,7 @@ def click_shotscreenbutton(window):
         return -1
 
     shot_screen = shotscreen.ShotScreen_Dialog(client_connection.mainsock)
+    # start otherthread running service
     subthread = threading.Thread(target = shot_screen.exec_(), args = ())
     subthread.start()
 
@@ -84,7 +87,7 @@ def UPDATE_GUI(window):
     elif (client_connection.connect_status == client_connection.Status_Code.TIMEOUT):
         window.change_GUI_status(window.Status_Code.TIMEOUT)
     elif (client_connection.connect_status == client_connection.Status_Code.DISCONNECT):
-        # In case lost connection from server
+        # In case lost connection from server, we make notification to user
         if (client_connection.lost_connect == True):
             client_connection.lost_connect = False
             server_address = str(client_connection.mainsock.getpeername()[0]) + ':' + str(client_connection.mainsock.getpeername()[1])
@@ -94,7 +97,7 @@ def UPDATE_GUI(window):
     elif (client_connection.connect_status == client_connection.Status_Code.CONNECTED):               # in-connecting
         window.change_GUI_status(window.Status_Code.CONNECTED)
         # sent '00' after every 500ms to check server's signal
-        #client_connection.send_message('00')
+        client_connection.send_message('00')
 
 def onQuit():
     if client_connection.connect_status == client_connection.Status_Code.CONNECTING \

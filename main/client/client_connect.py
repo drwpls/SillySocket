@@ -25,8 +25,8 @@ class Client_Connection:
             self.connect_status =  self.Status_Code.TIMEOUT   # Timout-status
             return
         else:
-            logging.debug('Connected to server {}'.format(self.mainsock.getpeername()))
             self.connect_status =  self.Status_Code.CONNECTED
+            logging.debug('Connected to server {}'.format(self.mainsock.getpeername()))
         
         # begin transfer data: (for commandline debugger)
         if DEBUGGING == True:
@@ -67,4 +67,4 @@ if __name__ == '__main__':
     HOST = '127.0.0.1'  # The server's hostname or IP address
     PORT = 65432        # The port used by the server
     client_connection = Client_Connection()
-    client_connection.start_connect(HOST, PORT, True)
+    client_connection.start_connect(HOST, PORT)

@@ -64,7 +64,7 @@ class Client_Connection:
         TIMEOUT = auto()
 
 if __name__ == '__main__':
-    HOST = '127.0.0.1'  # The server's hostname or IP address
+    HOST = '192.168.1.11'  # The server's hostname or IP address
     PORT = 65432        # The port used by the server
     client_connection = Client_Connection()
     client_connection.start_connect(HOST, PORT)

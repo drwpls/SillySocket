@@ -7,34 +7,40 @@ host = '0.0.0.0'    # all network interface
 port = 65432
 server_connection = server_connect.Server_Connection(host, port)
 
+
 def click_listenbox(window):
    # global window
-    if (server_connection.connect_status == 0):        
-        window.ListenBox.setText('Wait for clients.\nClick to Stop Listening')
-        connection_thread = threading.Thread(target = server_connection.start_listen)
+    if (server_connection.connect_status == 0):
+        window.ListenBox.setText('Waiting for clients\nClick to Stop Listening')
+        connection_thread = threading.Thread(target=server_connection.start_listen)
         connection_thread.start()
         window.timer_update_GUI.start(500)
     else:
         server_connection.stop_listen()
-        window.ListenBox.setText('Start Listening.')
+        window.ListenBox.setText('Start Listening')
         window.timer_update_GUI.stop()
-       
+
+
 def UPDATE_GUI(window):
-    if server_connection.connect_status > 1: # In case there are client(s) connected to server
-        window.ListenBox.setText('Connected to ' + \
-            str(server_connection.connect_status - 1)+  ' client(s)\n'+ 
-            'Click to Stop Listening')
+    if server_connection.connect_status > 1:  # In case there are client(s) connected to server
+        window.ListenBox.setText('Connected to ' +
+                                 str(server_connection.connect_status - 1) + ' client(s)\n' +
+                                 'Click to stop listening')
     elif server_connection.connect_status == 1:
-        window.ListenBox.setText('Wait for clients.\nClick to Stop Listening')
+        window.ListenBox.setText('Waiting for clients\nClick to stop listening')
+
 
 def onQuit():
     if server_connection.connect_status:
-        server_connection.stop_listen() # stop the thread
+        server_connection.stop_listen()  # stop the thread
     app.exit()
+
+
 def connect_GUI_Feature(window, app):
     app.lastWindowClosed.connect(onQuit)
-    window.add_Click_Behavior(window.ListenBox,lambda: click_listenbox(window))
+    window.add_Click_Behavior(window.ListenBox, lambda: click_listenbox(window))
     window.timer_update_GUI.timeout.connect(lambda: UPDATE_GUI(window))
+
 
 if __name__ == '__main__':
     # create application window

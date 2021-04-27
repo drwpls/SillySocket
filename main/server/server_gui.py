@@ -13,7 +13,7 @@ class server_window(QtWidgets.QMainWindow):
         self.setFixedSize(260, 170)
 
         # ListenBox
-        self.ListenBox = QtWidgets.QPushButton("Start Listen", self)
+        self.ListenBox = QtWidgets.QPushButton("Start listening", self)
         self.ListenBox.move(10,10)
         self.ListenBox.setFixedSize(240, 150)
     

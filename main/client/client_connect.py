@@ -20,8 +20,8 @@ class Client_Connection:
         self.mainsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.mainsock.connect((self.host, self.port))
-        except ConnectionRefusedError as e: # this is exception socket.error:
-            logging.debug('Cant connet to host {}'.format(e))
+        except (ConnectionRefusedError, TimeoutError) as e: # this is exception socket.error:
+            logging.debug('Cannot connect to host {}'.format(e))
             self.connect_status =  self.Status_Code.TIMEOUT   # Timout-status
             return
         else:
@@ -35,7 +35,7 @@ class Client_Connection:
                 print('Input message')
                 data = str(input())
                 message = data.encode('utf-8')
-                s.sendall(message)
+                self.mainsock.sendall(message)
         else:
             # keep thread running
             data = '1'
@@ -50,6 +50,7 @@ class Client_Connection:
             logging.debug('Lost connection from {}'.format(self.mainsock.getpeername()))
             self.connect_status =  self.Status_Code.DISCONNECT
             self.lost_connect = True
+
     def stop_connect(self):
         logging.debug('Closed connection to {}'.format(self.mainsock.getpeername()))
         endmessage = 'Close'
@@ -63,7 +64,7 @@ class Client_Connection:
         TIMEOUT = auto()
 
 if __name__ == '__main__':
-    HOST = '127.0.0.1'  # The server's hostname or IP address
+    HOST = '192.168.1.11'  # The server's hostname or IP address
     PORT = 65432        # The port used by the server
     client_connection = Client_Connection()
     client_connection.start_connect(HOST, PORT)

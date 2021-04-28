@@ -137,3 +137,10 @@ class Registry_Dialog(QtWidgets.QDialog):
 
     def click_deldirect(self):
         self.ReturnMessageBox.clear()
+
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication([])
+    window = Registry_Dialog()
+    window.show()
+    sys.exit(app.exec_())

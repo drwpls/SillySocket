@@ -1,15 +1,15 @@
 import selectors    # working with multi-clients
 import socket       # socket
 import logging
-import feature
+import features
 
 FEATURE_CODE = {
-    '01': feature.ProcessRunning,
-    '02': feature.AppRunning,
-    '03': feature.ShutDown,
-    '04': feature.Screenshot,
-    '05': feature.Keystroke,
-    '06': feature.RegistryEdit
+    '01': features.ProcessRunning,
+    '02': features.AppRunning,
+    '03': features.ShutDown,
+    '04': features.Screenshot,
+    '05': features.Keystroke,
+    '06': features.RegistryEdit
 }
 
 logging.basicConfig(level=logging.DEBUG)

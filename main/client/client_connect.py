@@ -20,8 +20,8 @@ class Client_Connection:
         self.mainsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.mainsock.connect((self.host, self.port))
-        except ConnectionRefusedError as e: # this is exception socket.error:
-            logging.debug('Cant connet to host {}'.format(e))
+        except (ConnectionRefusedError, TimeoutError) as e: # this is exception socket.error:
+            logging.debug('Cannot connect to host {}'.format(e))
             self.connect_status =  self.Status_Code.TIMEOUT   # Timout-status
             return
         else:

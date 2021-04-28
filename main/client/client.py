@@ -90,14 +90,13 @@ def click_registrybutton(window):
         errmsg = window.showError()
         errmsg.exec_()
         return -1
-    
+
     reg_edit = registry.Registry_Dialog(client_connection.mainsock)
     subthread = threading.Thread(target=reg_edit.exec_(), args=())
     subthread.start()
 
-    
 
-def UPDATE_GUI(window):
+def update_GUI(window):
     if (client_connection.connect_status == client_connection.Status_Code.CONNECTING):
         window.change_GUI_status(window.Status_Code.CONNECTING)
     elif (client_connection.connect_status == client_connection.Status_Code.TIMEOUT):
@@ -116,21 +115,22 @@ def UPDATE_GUI(window):
         # client_connection.send_message('00')
 
 
-def onQuit():
+def on_quit():
     if client_connection.connect_status == client_connection.Status_Code.CONNECTING \
             or client_connection.connect_status == client_connection.Status_Code.CONNECTED:
         client_connection.stop_connect()
     app.exit()
 
 
-def connect_GUI_Feature(window):
-    app.lastWindowClosed.connect(onQuit)
-    window.timer_update_GUI.timeout.connect(lambda: UPDATE_GUI(window))
-    window.add_Click_Behavior(window.ConnectButton, lambda: click_connectbutton(window))
-    window.add_Click_Behavior(window.SentButton, lambda: click_sendbutton(window))
-    window.add_Click_Behavior(window.ShutdownButton, lambda: click_shutdownbutton(window))
-    window.add_Click_Behavior(window.ScreenshotButton, lambda: click_screenshotbutton(window))
-    window.add_Click_Behavior(window.RegistryEditButton, lambda: click_registrybutton(window))
+def connect_GUI_feature(window):
+    app.lastWindowClosed.connect(on_quit)
+    window.timer_update_GUI.timeout.connect(lambda: update_GUI(window))
+    window.add_click_behavior(window.ConnectButton, lambda: click_connectbutton(window))
+    window.add_click_behavior(window.SendButton, lambda: click_sendbutton(window))
+    window.add_click_behavior(window.ShutdownButton, lambda: click_shutdownbutton(window))
+    window.add_click_behavior(window.ScreenshotButton, lambda: click_screenshotbutton(window))
+    window.add_click_behavior(window.RegistryEditButton, lambda: click_registrybutton(window))
+
 
 if __name__ == '__main__':
     app = client_gui.QtWidgets.QApplication([])
@@ -138,5 +138,5 @@ if __name__ == '__main__':
     window = client_gui.client_window()
     window.show()
 
-    connect_GUI_Feature(window)
+    connect_GUI_feature(window)
     sys.exit(app.exec_())

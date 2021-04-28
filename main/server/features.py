@@ -1,19 +1,16 @@
 import logging
 import os
+from re import sub
 import sys
 import socket
 import winreg
 import subprocess
 from PIL import Image, ImageGrab
-import wmi
 import io
 
 
 class ProcessRunning:
-    def __init__(self, _sock, opcode):
-        self.sock = _sock
-        self.opcode = opcode
-
+    pass
 
 class AppRunning:
     pass

@@ -21,7 +21,7 @@ def click_listenbox(window):
         window.timer_update_GUI.stop()
 
 
-def UPDATE_GUI(window):
+def update_GUI(window):
     if server_connection.connect_status > 1:  # In case there are client(s) connected to server
         window.ListenBox.setText('Connected to ' +
                                  str(server_connection.connect_status - 1) + ' client(s)\n' +
@@ -30,16 +30,16 @@ def UPDATE_GUI(window):
         window.ListenBox.setText('Waiting for clients\nClick to stop listening')
 
 
-def onQuit():
+def on_quit():
     if server_connection.connect_status:
         server_connection.stop_listen()  # stop the thread
     app.exit()
 
 
-def connect_GUI_Feature(window, app):
-    app.lastWindowClosed.connect(onQuit)
-    window.add_Click_Behavior(window.ListenBox, lambda: click_listenbox(window))
-    window.timer_update_GUI.timeout.connect(lambda: UPDATE_GUI(window))
+def connect_GUI_feature(window, app):
+    app.lastWindowClosed.connect(on_quit)
+    window.add_click_behavior(window.ListenBox, lambda: click_listenbox(window))
+    window.timer_update_GUI.timeout.connect(lambda: update_GUI(window))
 
 
 if __name__ == '__main__':
@@ -48,5 +48,5 @@ if __name__ == '__main__':
     app.setQuitOnLastWindowClosed(False)
     window = server_gui.server_window()
     window.show()
-    connect_GUI_Feature(window, app)
+    connect_GUI_feature(window, app)
     sys.exit(app.exec_())

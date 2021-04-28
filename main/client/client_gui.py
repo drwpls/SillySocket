@@ -20,7 +20,7 @@ class client_window(QtWidgets.QMainWindow):
 
         # IP box
         self.IPTextBox = QtWidgets.QLineEdit("192.168.1.11", self)
-        #self.IPTextBox.setInputMask('000.000.000.000')
+        # self.IPTextBox.setInputMask('000.000.000.000')
         self.IPTextBox.move(10, 50)
         self.IPTextBox.setFixedWidth(200)
 
@@ -44,27 +44,27 @@ class client_window(QtWidgets.QMainWindow):
         buttonwidth = -10 + self.ConnectButton.geometry().x() + self.ConnectButton.width()
 
         # Process Running button
-        self.ProcessRunningButton = QtWidgets.QPushButton("View running process", self)
+        self.ProcessRunningButton = QtWidgets.QPushButton("View running processes", self)
         self.ProcessRunningButton.move(10, 100)
         self.ProcessRunningButton.setFixedWidth(buttonwidth)
 
         # App running
-        self.AppRunningButton = QtWidgets.QPushButton("View running application", self)
+        self.AppRunningButton = QtWidgets.QPushButton("View running applications", self)
         self.AppRunningButton.move(10, 140)
         self.AppRunningButton.setFixedWidth(buttonwidth)
 
         # Shutdown
-        self.ShutdownButton = QtWidgets.QPushButton("Shut remote computer down", self)
+        self.ShutdownButton = QtWidgets.QPushButton("Shut down remote computer", self)
         self.ShutdownButton.move(10, 180)
         self.ShutdownButton.setFixedWidth(buttonwidth)
 
         # Screenshot
-        self.ScreenshotButton = QtWidgets.QPushButton("Get Screenshot", self)
+        self.ScreenshotButton = QtWidgets.QPushButton("Take screenshot", self)
         self.ScreenshotButton.move(10, 220)
         self.ScreenshotButton.setFixedWidth(buttonwidth)
 
         # Keystroke
-        self.KeystrokeButton = QtWidgets.QPushButton("Get Keystroke", self)
+        self.KeystrokeButton = QtWidgets.QPushButton("Get keystroke", self)
         self.KeystrokeButton.move(10, 260)
         self.KeystrokeButton.setFixedWidth(buttonwidth)
 
@@ -85,18 +85,18 @@ class client_window(QtWidgets.QMainWindow):
 
         # outputdebugger
         self.OutputPanel = QtWidgets.QLabel('', self)
-        self.OutputPanel.move(10, 380)
+        self.OutputPanel.move(10, 390)
         self.OutputPanel.setFixedWidth(buttonwidth)
         self.OutputPanel.setFixedHeight(100)
         self.OutputPanel.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
 
-        # SentButton
-        self.SentButton = QtWidgets.QPushButton('SEND', self)
-        self.SentButton.move(buttonwidth + 20, 380)
-        self.SentButton.setFixedHeight(100)
+        # SendButton
+        self.SendButton = QtWidgets.QPushButton('SEND', self)
+        self.SendButton.move(buttonwidth + 20, 350)
+        self.SendButton.setFixedHeight(140)
 
     @QtCore.Slot()
-    def add_Click_Behavior(self, obj, func):
+    def add_click_behavior(self, obj, func):
         obj.clicked.connect(func)
 
     def change_GUI_status(self, STATUS_CODE):

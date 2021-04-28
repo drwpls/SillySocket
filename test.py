@@ -1,50 +1,107 @@
-import socket
-from PIL import Image, ImageGrab
+#!/usr/bin/env python
 import sys
-from PySide6 import QtCore, QtWidgets, QtGui
-import logging
+import sys
+if sys.version_info[0] >= 3:
+    import PySimpleGUI as sg
+else:
+    import PySimpleGUI27 as sg
+import os
+import signal
+import psutil
+import operator
 
-logging.basicConfig(level=logging.DEBUG)
-class ScreenShot_Dialog(QtWidgets.QDialog):
-    def __init__(self):
-        super().__init__()
 
-        self.setWindowTitle('ScreenShot')      
-        #self.setFixedSize(1000, 500)
-        self.resize(830, 410)
+"""
+    Utility to show running processes, CPU usage and provides way to kill processes.
+    Based on psutil package that is easily installed using pip
+"""
 
-        self.Picture_box = QtWidgets.QLabel(self)
-        #self.Picture_box.setFixedSize(800,400)
-        self.Picture_box.move(0, 10)
-        self.Picture_box.resize(400, 710)
+def kill_proc_tree(pid, sig=signal.SIGTERM, include_parent=True,
+                   timeout=None, on_terminate=None):
+    """Kill a process tree (including grandchildren) with signal
+    "sig" and return a (gone, still_alive) tuple.
+    "on_terminate", if specified, is a callabck function which is
+    called as soon as a child terminates.
+    """
+    if pid == os.getpid():
+        raise RuntimeError("I refuse to kill myself")
+    parent = psutil.Process(pid)
+    children = parent.children(recursive=True)
+    if include_parent:
+        children.append(parent)
+    for p in children:
+        p.send_signal(sig)
+    gone, alive = psutil.wait_procs(children, timeout=timeout,
+                                    callback=on_terminate)
+    return (gone, alive)
 
-        self.Pixmap = QtGui.QPixmap('example.png')
-        myScaledPixmap = self.Pixmap.scaled(self.Picture_box.size(), QtGui.Qt.KeepAspectRatio) 
-        self.Picture_box.setPixmap(myScaledPixmap)
 
-        self.Picture_Layout = QtWidgets.QHBoxLayout(self)
-        self.Picture_Layout.addWidget(self.Picture_box)
+def main():
 
-        self.TakeButton = QtWidgets.QPushButton('Take', self)
-        self.TakeButton.move(720, 10)
+    # ----------------  Create Form  ----------------
+    # sg.ChangeLookAndFeel('Topanga')
 
-        self.SaveButton = QtWidgets.QPushButton('Save', self)
-        self.SaveButton.move(720, 50)
-        
-        #self.show()
+    layout = [[sg.Text('Process Killer - Choose one or more processes',
+                       size=(45,1), font=('Helvetica', 15), text_color='red')],
+              [sg.Listbox(values=[' '], size=(50, 30), select_mode=sg.SELECT_MODE_EXTENDED,  font=('Courier', 12), key='_processes_')],
+              [sg.Text('Click refresh once or twice.. once for list, second to get CPU usage')],
+              [sg.T('Filter by typing name', font='ANY 14'), sg.In(size=(15,1), font='any 14', key='_filter_')],
+              [sg.RButton('Sort by Name', ),
+               sg.RButton('Sort by % CPU', button_color=('white', 'DarkOrange2')),
+               sg.RButton('Kill', button_color=('white','red'), bind_return_key=True),
+               sg.Exit(button_color=('white', 'sea green'))]]
 
-def receive_screenshot(sock):
-    img = open('received.png', 'wb')
+    window = sg.Window('Process Killer',
+                       keep_on_top=True,
+                       auto_size_buttons=False,
+                       default_button_element_size=(12,1),
+                       return_keyboard_events=True,
+                       ).Layout(layout)
 
-    data = sock.recv(1024)
-    while data and data.decode('utf8') != 'done':
-        img.write(data)
-        data = sock.recv(1024)
-    
-    img.close()
+    display_list = None
+    # ----------------  main loop  ----------------
+    while (True):
+        # --------- Read and update window --------
+        button, values = window.Read()
 
-if __name__ == '__main__':
-    app = QtWidgets.QApplication([])
-    window = ScreenShot_Dialog()
-    window.show()
-    sys.exit(app.exec_())
+        if 'Mouse' in button or 'Control' in button or 'Shift' in button:
+            continue
+        # --------- Do Button Operations --------
+        if values is None or button == 'Exit':
+            break
+
+        if button == 'Sort by Name':
+            psutil.cpu_percent(interval=1)
+            procs = psutil.process_iter()
+            all_procs = [[proc.cpu_percent(), proc.name(), proc.pid] for proc in procs]
+            sorted_by_cpu_procs = sorted(all_procs, key=operator.itemgetter(1), reverse=False)
+            display_list = []
+            for process in sorted_by_cpu_procs:
+                display_list.append('{:5d} {:5.2f} {}\n'.format(process[2], process[0]/10, process[1]))
+            window.FindElement('_processes_').Update(display_list)
+        elif button == 'Kill':
+            processes_to_kill = values['_processes_']
+            for proc in processes_to_kill:
+                pid = int(proc[0:5])
+                if sg.PopupYesNo('About to kill {} {}'.format(pid, proc[13:]), keep_on_top=True) == 'Yes':
+                    kill_proc_tree(pid=pid)
+        elif button == 'Sort by % CPU':
+            psutil.cpu_percent(interval=1)
+            procs = psutil.process_iter()
+            all_procs = [[proc.cpu_percent(), proc.name(), proc.pid] for proc in procs]
+            sorted_by_cpu_procs = sorted(all_procs, key=operator.itemgetter(0), reverse=True)
+            display_list = []
+            for process in sorted_by_cpu_procs:
+                display_list.append('{:5d} {:5.2f} {}\n'.format(process[2], process[0]/10, process[1]))
+            window.FindElement('_processes_').Update(display_list)
+        else:
+            if display_list is not None:
+                new_output = []
+                for line in display_list:
+                    if values['_filter_'] in line.lower():
+                        new_output.append(line)
+                window.FindElement('_processes_').Update(new_output)
+
+
+if __name__ == "__main__":
+    main()

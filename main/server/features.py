@@ -7,10 +7,54 @@ import winreg
 import subprocess
 from PIL import Image, ImageGrab
 import io
+import signal
+import psutil
 
 
 class ProcessRunning:
-    pass
+    def __init__(self, _sock, message):
+        self._sock = _sock
+        self.opcode = message[:5]
+        self.message = message[5:]
+        logging.debug('receive {} {}'.format(self.opcode, self.message))
+
+
+    def do_task(self):
+        if self.opcode == 'get__':
+            self.send_process_list()
+        if self.opcode == 'kill_':
+            self.kill_proc_tree(pid = int(self.message))
+        if self.opcode == 'start':
+            self.startprocess(self.message)
+            
+    def send_process_list(self):
+        for proc in psutil.process_iter():
+            try:
+                # Get process name & pid from process object.
+                processName = proc.name()
+                processID = proc.pid
+                message = processName + ',' + str(processID) + '|'
+                self._sock.sendall(message.encode('utf-8'))
+                logging.debug('Sending {}'.format(message))
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        self._sock.sendall('done'.encode('utf-8'))
+    
+    def kill_proc_tree(self, pid, sig=signal.SIGTERM, include_parent=True,
+                    timeout=None, on_terminate=None):
+        parent = psutil.Process(pid)
+        children = parent.children(recursive=True)
+        if include_parent:
+            children.append(parent)
+        for p in children:
+            p.send_signal(sig)
+        gone, alive = psutil.wait_procs(children, timeout=timeout,
+                                        callback=on_terminate)
+        return (gone, alive)
+
+    def startprocess(self, process):
+        psutil.Popen(str(process))
+
 
 class AppRunning:
     pass

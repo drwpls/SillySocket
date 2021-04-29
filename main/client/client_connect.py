@@ -38,9 +38,7 @@ class Client_Connection:
                 self.mainsock.sendall(message)
         else:
             # keep thread running
-            data = '1'
-            while not (data == 'Close' or not data) and self.connect_status ==  self.Status_Code.CONNECTED:
-                pass
+            pass
     
     def send_message(self, message):
         message = message.encode('utf-8')

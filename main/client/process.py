@@ -49,6 +49,7 @@ class Process_Dialog(QtWidgets.QDialog):
     def __init__(self, sock):
         super().__init__()
         self.setWindowTitle('Process')
+        self.FEATURE_CODE = FEATURE_CODE['ProcessRunning']
         self.sock = sock     
         self.resize(400, 500)
 
@@ -58,15 +59,15 @@ class Process_Dialog(QtWidgets.QDialog):
         self.mainWidget.setSortingEnabled(True)
         self.list_process_data = []
 
-        self.ViewButton = QtWidgets.QPushButton('View Process', self)
+        self.ViewButton = QtWidgets.QPushButton('View', self)
         self.ViewButton.move(260, 10)
         self.ViewButton.setFixedWidth(120)
         
-        self.KillButton = QtWidgets.QPushButton('Kill Process', self)
+        self.KillButton = QtWidgets.QPushButton('Kill', self)
         self.KillButton.move(260, 40)
         self.KillButton.setFixedWidth(120)
 
-        self.StartButton = QtWidgets.QPushButton('Start Process', self)
+        self.StartButton = QtWidgets.QPushButton('Start', self)
         self.StartButton.move(260, 70)
         self.StartButton.setFixedWidth(120)
 
@@ -74,7 +75,7 @@ class Process_Dialog(QtWidgets.QDialog):
         self.ClearButton.move(260, 100)
         self.ClearButton.setFixedWidth(120)
 
-        self.DirectModifyGr = QtWidgets.QGroupBox('Filter Process', self)
+        self.DirectModifyGr = QtWidgets.QGroupBox('Filter', self)
         self.DirectModifyGr.move(260, 180)
         self.DirectModifyGr.setFixedSize(140, 220)
 
@@ -121,6 +122,7 @@ class Process_Dialog(QtWidgets.QDialog):
         process_list = []
         for mess in message:
             name, pid = mess.split(',')
+            pid = int(pid)
             process_list.append([name, pid])
         del message
         return process_list
@@ -145,14 +147,14 @@ class Process_Dialog(QtWidgets.QDialog):
     def click_killprocess(self):
         index = self.mainWidget.selectedIndexes()
         if not index:
-            print('No Process select')
+            logging.debug('No Process select')
         else:
             cell = index[0]
             row = cell.row()
             x = self.mainWidget.model().index(row, 1).data()
             message = FEATURE_CODE['ProcessRunning'] + 'kill_' + str(x)
             self.sock.sendall(message.encode('utf-8'))
-            self.click_viewbutton()
+            #self.click_viewbutton()
 
     def click_startprocess(self):
         process, ok = QtWidgets.QInputDialog.getText(self, 'Start', 'Enter process/application name:')
@@ -187,6 +189,7 @@ class Process_Dialog(QtWidgets.QDialog):
     def click_clearfilterbutton(self):
         self.list_process_data = self.list_process_data_backup 
         self.set_data()
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

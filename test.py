@@ -5,11 +5,14 @@ import win32con
 import ctypes
 # For test only:
 from subprocess import Popen
-from time import sleep
-GetAncestor = ctypes.windll.user32.GetAncestor
-# https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowthreadprocessid
+import ctypes
+import win32gui
+EnumWindows = ctypes.windll.user32.EnumWindows
+EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
+GetWindowText = ctypes.windll.user32.GetWindowTextW
+GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
+IsWindowVisible = ctypes.windll.user32.IsWindowVisible
 GetWindowThreadProcessId = ctypes.windll.user32.GetWindowThreadProcessId
-
 def _get_top_level(hwnd:int, lst:list):
     root_win = GetAncestor(hwnd, win32con.GA_ROOTOWNER)
     # Exclude non top level windows:

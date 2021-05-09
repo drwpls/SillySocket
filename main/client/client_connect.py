@@ -39,7 +39,7 @@ class Client_Connection:
                 self.mainsock.sendall(message)
         else:
             pass
-
+    
     def send_message(self, message):
         message = message.encode('utf-8')
         try:

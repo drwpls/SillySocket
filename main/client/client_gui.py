@@ -19,7 +19,7 @@ class client_window(QtWidgets.QMainWindow):
         self.setFixedSize(500, 500)
 
         # IP box
-        self.IPTextBox = QtWidgets.QLineEdit("192.168.1.11", self)
+        self.IPTextBox = QtWidgets.QLineEdit("127.0.0.1", self)
         # self.IPTextBox.setInputMask('000.000.000.000')
         self.IPTextBox.move(10, 50)
         self.IPTextBox.setFixedWidth(200)

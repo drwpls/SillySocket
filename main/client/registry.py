@@ -141,6 +141,6 @@ class Registry_Dialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    window = Registry_Dialog()
+    window = Registry_Dialog(0)
     window.show()
     sys.exit(app.exec_())

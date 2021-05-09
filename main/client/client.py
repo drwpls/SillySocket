@@ -5,16 +5,11 @@ import screenshot
 import registry
 import shutdown
 import keystroke
-import client_gui
-import client_connect
-
-
-
+import process
+import application
 
 import client_gui
 import client_connect
-
-import shutdown
 
 
 FEATURE_CODE = {
@@ -83,6 +78,7 @@ def click_shutdownbutton(window):
 
 
 def click_screenshotbutton(window):
+    
     if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
         # show error msg
         errmsg = window.showError()
@@ -90,8 +86,9 @@ def click_screenshotbutton(window):
         return -1
 
     take_screenshot = screenshot.Screenshot_Dialog(client_connection.mainsock)
-    subthread = threading.Thread(target=take_screenshot.exec_(), args=())
-    subthread.start()
+    take_screenshot.exec_()
+    #subthread = threading.Thread(target=take_screenshot.exec_(), args=())
+    #subthread.start()
 
 
 def click_keystrokebutton(window):
@@ -113,9 +110,32 @@ def click_registrybutton(window):
         return -1
 
     reg_edit = registry.Registry_Dialog(client_connection.mainsock)
+    #reg_edit.exec_()
     subthread = threading.Thread(target=reg_edit.exec_(), args=())
     subthread.start()
 
+def click_processrunningbutton(window):
+    if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
+        # show error msg
+        errmsg = window.showError()
+        errmsg.exec_()
+        return -1
+        
+    process_running = process.Process_Dialog(client_connection.mainsock)
+    process_running.exec_()
+
+    #subthread1 = threading.Thread(target=process_running.exec_(), args=())
+    #subthread1.start()
+
+def click_applicationrunning(window):
+    if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
+        # show error msg
+        errmsg = window.showError()
+        errmsg.exec_()
+        return -1
+        
+    application_running = application.Application_Dialog(client_connection.mainsock)
+    application_running.exec_()
 
 def update_GUI(window):
     if (client_connection.connect_status == client_connection.Status_Code.CONNECTING):
@@ -152,6 +172,8 @@ def connect_GUI_feature(window):
     window.add_click_behavior(window.ScreenshotButton, lambda: click_screenshotbutton(window))
     window.add_click_behavior(window.KeystrokeButton, lambda: click_keystrokebutton(window))
     window.add_click_behavior(window.RegistryEditButton, lambda: click_registrybutton(window))
+    window.add_click_behavior(window.ProcessRunningButton, lambda: click_processrunningbutton(window))
+    window.add_click_behavior(window.AppRunningButton, lambda: click_applicationrunning(window))
 
 
 if __name__ == '__main__':

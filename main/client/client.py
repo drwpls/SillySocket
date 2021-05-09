@@ -3,6 +3,13 @@ import threading
 import logging
 import screenshot
 import registry
+import shutdown
+import keystroke
+import client_gui
+import client_connect
+
+
+
 
 import client_gui
 import client_connect
@@ -87,6 +94,17 @@ def click_screenshotbutton(window):
     subthread.start()
 
 
+def click_keystrokebutton(window):
+    if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
+        # show error msg
+        errmsg = window.showError()
+        errmsg.exec_()
+        return -1
+
+    keystroke_diag = keystroke.Keystroke_Dialog(client_connection.mainsock)
+    subthread = threading.Thread(target=keystroke_diag.exec_(), args=())
+    subthread.start()
+
 def click_registrybutton(window):
     if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
         # show error msg
@@ -115,7 +133,7 @@ def update_GUI(window):
     elif (client_connection.connect_status == client_connection.Status_Code.CONNECTED):               # in-connecting
         window.change_GUI_status(window.Status_Code.CONNECTED)
         # sent '00' after every 500ms to check server's signal
-        client_connection.send_message('00')
+        #client_connection.send_message('00')
 
 
 def on_quit():
@@ -132,6 +150,7 @@ def connect_GUI_feature(window):
     window.add_click_behavior(window.SendButton, lambda: click_sendbutton(window))
     window.add_click_behavior(window.ShutdownButton, lambda: click_shutdownbutton(window))
     window.add_click_behavior(window.ScreenshotButton, lambda: click_screenshotbutton(window))
+    window.add_click_behavior(window.KeystrokeButton, lambda: click_keystrokebutton(window))
     window.add_click_behavior(window.RegistryEditButton, lambda: click_registrybutton(window))
 
 

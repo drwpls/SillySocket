@@ -6,16 +6,7 @@ import io
 import psutil
 import operator
 import signal
-
-FEATURE_CODE = {
-    'PING': '00',
-    'ProcessRunning': '01',
-    'AppRunning': '02',
-    'Shutdown': '03',
-    'Screenshot': '04',
-    'Keystroke': '05',
-    'RegistryEdit': '06',
-}
+from FEATURE_CODE import FEATURE_CODE
 
 class TableModel(QtCore.QAbstractTableModel):
     def __init__(self, parent, mylist, header, *args):

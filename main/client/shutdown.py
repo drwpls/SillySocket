@@ -4,17 +4,7 @@ import logging
 import socket
 
 logging.basicConfig(level=logging.DEBUG)
-
-FEATURE_CODE = {
-    'PING': '00',
-    'ProcessRunning': '01',
-    'AppRunning': '02',
-    'Shutdown': '03',
-    'Screenshot': '04',
-    'Keystroke': '05',
-    'RegistryEdit': '06',
-}
-
+from FEATURE_CODE import FEATURE_CODE
 
 class Shutdown_Dialog(QtWidgets.QDialog):
     def __init__(self, sock):

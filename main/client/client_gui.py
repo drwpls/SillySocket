@@ -6,7 +6,6 @@ from enum import Enum, auto
 
 logging.basicConfig(level=logging.DEBUG)
 
-
 class client_window(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()

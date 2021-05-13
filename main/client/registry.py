@@ -5,16 +5,7 @@ from PySide6 import QtCore, QtWidgets, QtGui
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-
-FEATURE_CODE = {
-    'PING': '00',
-    'ProcessRunning': '01',
-    'AppRunning': '02',
-    'Shutdown': '03',
-    'Screenshot': '04',
-    'Keystroke': '05',
-    'RegistryEdit': '06',
-}
+from FEATURE_CODE import FEATURE_CODE
 
 
 class Registry_Dialog(QtWidgets.QDialog):

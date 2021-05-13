@@ -14,7 +14,6 @@ FEATURE_CODE = {
 class Application_Dialog(Process_Dialog):
     def __init__(self, sock):
         super().__init__(sock)
-        Process_Dialog.FEATURE_CODE = FEATURE_CODE['AppRunning']
         self.FEATURE_CODE = FEATURE_CODE['AppRunning']
         self.setWindowTitle('Application')
 

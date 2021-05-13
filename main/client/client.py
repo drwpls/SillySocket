@@ -7,23 +7,11 @@ import shutdown
 import keystroke
 import process
 import application
-
 import client_gui
 import client_connect
-
-
-FEATURE_CODE = {
-    'PING': '00',
-    'ProcessRunning': '01',
-    'AppRunning': '02',
-    'Shutdown': '03',
-    'Screenshot': '04',
-    'Keystroke': '05',
-    'RegistryEdit': '06',
-}
+from FEATURE_CODE import FEATURE_CODE
 
 client_connection = client_connect.Client_Connection()
-
 
 def click_connectbutton(window):
     if (client_connection.connect_status == client_connection.Status_Code.DISCONNECT

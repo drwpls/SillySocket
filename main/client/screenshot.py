@@ -6,17 +6,7 @@ import io
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-
-FEATURE_CODE = {
-    'PING': '00',
-    'ProcessRunning': '01',
-    'AppRunning': '02',
-    'Shutdown': '03',
-    'Screenshot': '04',
-    'Keystroke': '05',
-    'RegistryEdit': '06',
-}
-
+from FEATURE_CODE import FEATURE_CODE
 
 class Screenshot_Dialog(QtWidgets.QDialog):
     def __init__(self, sock):

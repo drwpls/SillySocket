@@ -11,7 +11,7 @@ server_connection = server_connect.Server_Connection(host, port)
 def click_listenbox(window):
    # global window
     if (server_connection.connect_status == 0):
-        window.ListenBox.setText('Waiting for clients\nClick to Stop Listening')
+        window.ListenBox.setText('Waiting for clients\nClick to stop listening')
         connection_thread = threading.Thread(target=server_connection.start_listen)
         connection_thread.start()
         window.timer_update_GUI.start(500)

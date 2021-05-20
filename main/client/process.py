@@ -129,6 +129,8 @@ class Process_Dialog(QtWidgets.QDialog):
         header = ['Name', 'PID']
         model = TableModel(self, self.list_process_data, header)
         self.mainWidget.setModel(model)    
+        self.mainWidget.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+        self.mainWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
     def click_viewbutton(self):
         self.get_process_list()

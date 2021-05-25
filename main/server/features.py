@@ -42,7 +42,7 @@ class ProcessRunning:
                 # Get process name & pid from process object.
                 processName = proc.name()
                 processID = proc.pid
-                message = processName + ',' + str(processID) + '|'
+                message = processName + ',' + str(processID) + '~'
                 self._sock.sendall(message.encode('utf-8'))
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
@@ -101,8 +101,9 @@ class AppRunning:
                 # Get process name & pid from process object.
                 processName = proc[0]
                 processID = proc[1]
-                message = processName + ',' + str(processID) + '|'
+                message = processName + ',' + str(processID) + '~'
                 self._sock.sendall(message.encode('utf-8'))
+                logging.debug('Sent values: {}'.format(message))
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         self._sock.sendall('done'.encode('utf-8'))

@@ -11,6 +11,7 @@ FEATURE_CODE = {
     'RegistryEdit': '06',
 }
 
+
 class Application_Dialog(Process_Dialog):
     def __init__(self, sock):
         super().__init__(sock)

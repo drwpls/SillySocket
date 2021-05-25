@@ -135,13 +135,13 @@ def update_GUI(window):
         if (client_connection.lost_connect == True):
             client_connection.lost_connect = False
             server_address = str(client_connection.mainsock.getpeername()[0]) + ':' + str(client_connection.mainsock.getpeername()[1])
-            errmsg = window.showError('Lost connection', ' from server: ' + server_address)
+            errmsg = window.showError('Lost connection', 'Lost connection from server ' + server_address)
             errmsg.exec_()
         window.change_GUI_status(window.Status_Code.DISCONNECT)
     elif (client_connection.connect_status == client_connection.Status_Code.CONNECTED):               # in-connecting
         window.change_GUI_status(window.Status_Code.CONNECTED)
-        # sent '00' after every 500ms to check server's signal
-        #client_connection.send_message('00')
+        # sent '00' after every 1000ms to check server's signal
+        client_connection.send_message('00')
 
 
 def on_quit():

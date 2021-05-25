@@ -89,7 +89,8 @@ class Server_Connection:
             else:
                 if recv_data and recv_data != b'Close':
                     if recv_data == b'00':
-                        logging.debug('PING from {}'.format(_address))
+                        #logging.debug('PING from {}'.format(_address))
+                        pass
                     else:
                         logging.debug('Message from {}: {}'.format(_address, recv_data))
                         self.handle_message(_sock, recv_data)

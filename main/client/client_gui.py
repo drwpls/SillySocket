@@ -127,8 +127,7 @@ class client_window(QtWidgets.QMainWindow):
         msg = QtWidgets.QMessageBox()
         msg.setFixedWidth(200)
         msg.setIcon(QtWidgets.QMessageBox.Critical)
-        msg.setText(error)
-        msg.setInformativeText(message)
+        msg.setText(message)
         msg.setWindowTitle(error)
         return msg
 

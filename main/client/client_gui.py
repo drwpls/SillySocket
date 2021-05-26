@@ -11,15 +11,13 @@ class client_window(QtWidgets.QMainWindow):
         super().__init__()
 
         self.timer_update_GUI = QtCore.QTimer()
-        # self.timer_update_GUI.start(500) # Update every 500ms
 
         # create windows title and its size
         self.setWindowTitle("Client")
-        self.setFixedSize(500, 500)
+        self.setFixedSize(500, 360)
 
         # IP box
         self.IPTextBox = QtWidgets.QLineEdit("127.0.0.1", self)
-        # self.IPTextBox.setInputMask('000.000.000.000')
         self.IPTextBox.move(10, 50)
         self.IPTextBox.setFixedWidth(200)
 
@@ -40,7 +38,7 @@ class client_window(QtWidgets.QMainWindow):
         self.ConnectStatus.move(10 + self.ConnectButton.geometry().x() + self.ConnectButton.width(), 50)
         self.ConnectStatus.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
 
-        buttonwidth = -10 + self.ConnectButton.geometry().x() + self.ConnectButton.width()
+        buttonwidth = 480
 
         # Process Running button
         self.ProcessRunningButton = QtWidgets.QPushButton("View running processes", self)
@@ -71,28 +69,6 @@ class client_window(QtWidgets.QMainWindow):
         self.RegistryEditButton = QtWidgets.QPushButton("Edit remote computer registry", self)
         self.RegistryEditButton.move(10, 300)
         self.RegistryEditButton.setFixedWidth(buttonwidth)
-
-        # QuitButton
-        self.QuitButton = QtWidgets.QPushButton("QUIT", self)
-        self.QuitButton.move(buttonwidth + 20, 100)
-        self.QuitButton.setFixedHeight(self.RegistryEditButton.geometry().y() + self.RegistryEditButton.height() - 100)
-
-        # inputdebugger:
-        self.Input = QtWidgets.QLineEdit(self)
-        self.Input.move(10, 350)
-        self.Input.setFixedWidth(buttonwidth)
-
-        # outputdebugger
-        self.OutputPanel = QtWidgets.QLabel('', self)
-        self.OutputPanel.move(10, 390)
-        self.OutputPanel.setFixedWidth(buttonwidth)
-        self.OutputPanel.setFixedHeight(100)
-        self.OutputPanel.setStyleSheet("QLabel { border: 1.5px solid black;font-weight: bold; color : red; }")
-
-        # SendButton
-        self.SendButton = QtWidgets.QPushButton('SEND', self)
-        self.SendButton.move(buttonwidth + 20, 350)
-        self.SendButton.setFixedHeight(140)
 
     @QtCore.Slot()
     def add_click_behavior(self, obj, func):

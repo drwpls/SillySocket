@@ -13,6 +13,7 @@ from FEATURE_CODE import FEATURE_CODE
 
 client_connection = client_connect.Client_Connection()
 
+
 def click_connectbutton(window):
     if (client_connection.connect_status == client_connection.Status_Code.DISCONNECT
             or client_connection.connect_status == client_connection.Status_Code.TIMEOUT):
@@ -44,16 +45,6 @@ def click_connectbutton(window):
         window.timer_update_GUI.stop()
 
 
-def click_sendbutton(window):
-    if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
-        # by default, showError will display NOCONNECTION error
-        errmsg = window.showError()
-        errmsg.exec_()
-        return -1
-    message = str(window.Input.text())
-    client_connection.send_message(message)
-
-
 def click_shutdownbutton(window):
     if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
         errmsg = window.showError()
@@ -66,7 +57,7 @@ def click_shutdownbutton(window):
 
 
 def click_screenshotbutton(window):
-    
+
     if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
         # show error msg
         errmsg = window.showError()
@@ -76,7 +67,7 @@ def click_screenshotbutton(window):
     take_screenshot = screenshot.Screenshot_Dialog(client_connection.mainsock)
     take_screenshot.exec_()
     #subthread = threading.Thread(target=take_screenshot.exec_(), args=())
-    #subthread.start()
+    # subthread.start()
 
 
 def click_keystrokebutton(window):
@@ -90,6 +81,7 @@ def click_keystrokebutton(window):
     subthread = threading.Thread(target=keystroke_diag.exec_(), args=())
     subthread.start()
 
+
 def click_registrybutton(window):
     if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
         # show error msg
@@ -98,9 +90,10 @@ def click_registrybutton(window):
         return -1
 
     reg_edit = registry.Registry_Dialog(client_connection.mainsock)
-    #reg_edit.exec_()
+    # reg_edit.exec_()
     subthread = threading.Thread(target=reg_edit.exec_(), args=())
     subthread.start()
+
 
 def click_processrunningbutton(window):
     if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
@@ -108,12 +101,13 @@ def click_processrunningbutton(window):
         errmsg = window.showError()
         errmsg.exec_()
         return -1
-        
+
     process_running = process.Process_Dialog(client_connection.mainsock)
     process_running.exec_()
 
     #subthread1 = threading.Thread(target=process_running.exec_(), args=())
-    #subthread1.start()
+    # subthread1.start()
+
 
 def click_applicationrunning(window):
     if client_connection.connect_status != client_connection.Status_Code.CONNECTED:
@@ -121,9 +115,10 @@ def click_applicationrunning(window):
         errmsg = window.showError()
         errmsg.exec_()
         return -1
-        
+
     application_running = application.Application_Dialog(client_connection.mainsock)
     application_running.exec_()
+
 
 def update_GUI(window):
     if (client_connection.connect_status == client_connection.Status_Code.CONNECTING):
@@ -155,7 +150,6 @@ def connect_GUI_feature(window):
     app.lastWindowClosed.connect(on_quit)
     window.timer_update_GUI.timeout.connect(lambda: update_GUI(window))
     window.add_click_behavior(window.ConnectButton, lambda: click_connectbutton(window))
-    window.add_click_behavior(window.SendButton, lambda: click_sendbutton(window))
     window.add_click_behavior(window.ShutdownButton, lambda: click_shutdownbutton(window))
     window.add_click_behavior(window.ScreenshotButton, lambda: click_screenshotbutton(window))
     window.add_click_behavior(window.KeystrokeButton, lambda: click_keystrokebutton(window))

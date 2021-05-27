@@ -205,7 +205,7 @@ class Keystroke:
             return False
 
     def do_task(self):
-        listener = listener = keyboard.Listener(
+        listener = keyboard.Listener(
             on_press=self.on_press,
             on_release=self.on_release)
 
